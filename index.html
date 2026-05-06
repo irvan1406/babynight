@@ -702,7 +702,7 @@
                         } catch (e) {
                             console.error("Gagal sync ke Realtime Database:", e);
                             if (!firebaseErrorAlerted) {
-                                alert("FIREBASE DITOLAK!\n\nPastikan Anda sudah mengklik 'Create Database' di menu REALTIME DATABASE dan mengubah Rules menjadi true (Lihat instruksi di chat).");
+                                alert("FIREBASE REALTIME DB DITOLAK!\n\nPesan Error: " + e.message + "\n\nPastikan Anda sudah mengubah Rules REALTIME DATABASE menjadi true.");
                                 firebaseErrorAlerted = true;
                             }
                         }
@@ -737,7 +737,7 @@
                     }, (error) => {
                         console.error("Error Listener Firebase:", error);
                         if (!firebaseErrorAlerted) {
-                            alert("FIREBASE LISTENER TERPUTUS! Pastikan Rules Realtime Database diizinkan baca/tulis.");
+                            alert("FIREBASE LISTENER TERPUTUS!\n\nPesan Error: " + error.message + "\n\nPastikan Rules Realtime Database diizinkan baca/tulis (.read: true, .write: true).");
                             firebaseErrorAlerted = true;
                         }
                     });
