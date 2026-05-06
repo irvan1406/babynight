@@ -660,9 +660,10 @@
          6. JAVASCRIPT MODULAR LOGIC
          ======================================================== -->
     
-    <!-- MENGINISIALISASI FIREBASE SDK (Perubahan Utama) -->
+    <!-- MENGINISIALISASI FIREBASE SDK DAN FIRESTORE (SINKRONISASI REALTIME) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         const firebaseConfig = {
           apiKey: "AIzaSyDLLyQ7jAfugtPoPYZrwDdkWTJ9q2VYSsQ",
@@ -676,7 +677,16 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        window.firebaseApp = app; // Membuat app Firebase dapat diakses secara global jika dibutuhkan kelak
+        const db = getFirestore(app);
+        
+        // Expose Firebase Database ke Global Context agar bisa dipakai oleh fungsi di bawahnya
+        window.firebaseDb = db;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseOnSnapshot = onSnapshot;
+        
+        // Memicu event custom saat Firebase sudah siap dipakai
+        window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
     <script>
@@ -721,9 +731,21 @@
         let state = { ...defaultState };
 
         const StorageCtrl = {
-            save: () => {
+            // Ditambahkan silent parameter agar tidak muncul popup saat Auto-Sync berjalan
+            save: async (silent = true) => {
                 localStorage.setItem('babyProjectorState', JSON.stringify(state));
-                alert("Settings Saved to LocalStorage!");
+                
+                // SINKRONISASI REAL-TIME KE FIREBASE FIRESTORE
+                if (window.firebaseDb) {
+                    try {
+                        const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                        await window.firebaseSetDoc(docRef, state);
+                    } catch (e) {
+                        console.error("Gagal sync ke Firebase. Pastikan Rules Firestore Anda diset 'allow read, write: if true;'", e);
+                    }
+                }
+
+                if (!silent) alert("Pengaturan Tersimpan di LocalStorage & Firebase!");
             },
             load: () => {
                 const saved = localStorage.getItem('babyProjectorState');
@@ -731,11 +753,32 @@
                     state = { ...defaultState, ...JSON.parse(saved) };
                 }
             },
+            // Fungsi MENDENGARKAN perubahan dari HP atau Proyektor
+            listenFirebase: () => {
+                if (window.firebaseDb) {
+                    const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                    window.firebaseOnSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            state = { ...state, ...data }; // Gabungkan state baru
+                            
+                            // Re-render UI secara otomatis begitu ada perubahan di database
+                            AdminCtrl.syncUIToState();
+                            ThemeCtrl.render();
+                            TimeCtrl.update();
+                            AudioCtrl.updateVolumes();
+                            if(state.showQuran) QuranCtrl.fetchAndRender();
+                            else document.getElementById('quran-layer').innerHTML = '';
+                        }
+                    });
+                }
+            },
             reset: () => {
                 if(confirm("Reset semua pengaturan ke default?")) {
                     localStorage.removeItem('babyProjectorState');
                     state = { ...defaultState };
-                    location.reload(); // Refresh untuk apply bersih
+                    StorageCtrl.save(true);
+                    location.reload(); 
                 }
             }
         };
@@ -788,7 +831,6 @@
                     const data = await res.json();
                     if(data.code === 200) {
                         const ayahs = data.data.ayahs.map(a => a.text).join(' ۝ ');
-                        // Kalkulasi durasi animasi berdasarkan panjang teks agar scrolling natural
                         const animDuration = Math.max(30, data.data.ayahs.length * 3); 
                         layer.innerHTML = `<div id="quran-scroll" style="animation-duration: ${animDuration}s">${data.data.name} <br><br> ${ayahs}</div>`;
                     }
@@ -810,11 +852,9 @@
                 if(AlarmCtrl.isRinging) return;
                 AlarmCtrl.isRinging = true;
                 
-                // Visual Flash
                 document.getElementById('brightness-overlay').classList.add('alarm-flash');
                 document.getElementById('btn-stop-alarm').style.display = 'block';
 
-                // Audio Beep menggunakan Web Audio API
                 if (!AlarmCtrl.ctx) AlarmCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if(AlarmCtrl.ctx.state === 'suspended') AlarmCtrl.ctx.resume();
 
@@ -822,12 +862,11 @@
                 const gain = AlarmCtrl.ctx.createGain();
                 
                 AlarmCtrl.osc.type = 'square';
-                AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); // High pitch beep
+                AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); 
                 
-                // Beep Beep effect using LFO on gain
                 const lfo = AlarmCtrl.ctx.createOscillator();
                 lfo.type = 'square';
-                lfo.frequency.value = 4; // 4 beeps per second
+                lfo.frequency.value = 4; 
                 lfo.connect(gain.gain);
                 lfo.start();
 
@@ -844,10 +883,9 @@
                 if(AlarmCtrl.osc) {
                     try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){}
                 }
-                // Nonaktifkan alarm agar tidak bunyi terus menerus di menit yang sama
                 state.alarmActive = false;
                 document.getElementById('set-alarm-active').checked = false;
-                StorageCtrl.save();
+                StorageCtrl.save(true);
             }
         };
 
@@ -873,7 +911,6 @@
             sleepTimerDisp: document.getElementById('sleep-timer-display'),
             customAudioPlayer: document.getElementById('custom-audio-player'),
 
-            // Admin Inputs
             uiAutoNight: document.getElementById('set-auto-night'),
             uiPreset: document.getElementById('set-preset'),
             btnApplyPreset: document.getElementById('btn-apply-preset'),
@@ -940,7 +977,7 @@
                 }
 
                 const count = state.performanceMode ? Math.floor(state.particleCount / 2) : state.particleCount;
-                const speedMulti = 1 / state.animSpeed; // if speed is 2, duration is half
+                const speedMulti = 1 / state.animSpeed; 
 
                 if (state.theme === 'night-sky' || state.theme === 'custom') {
                     for (let i = 0; i < count; i++) {
@@ -980,7 +1017,6 @@
                     }
                 }
 
-                // Render Baby Name
                 if(state.babyName.trim() !== '') {
                     DOM.layerBabyName.style.display = 'block';
                     DOM.layerBabyName.innerText = state.babyName;
@@ -988,7 +1024,6 @@
                     DOM.layerBabyName.style.display = 'none';
                 }
 
-                // Render Brightness
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
             }
         };
@@ -1020,7 +1055,6 @@
             update: () => {
                 const now = new Date();
                 
-                // --- 1. Clock Render ---
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 DOM.layerDate.innerText = now.toLocaleDateString('id-ID', options);
 
@@ -1032,7 +1066,6 @@
                     const hStr = String(hr).padStart(2, '0');
                     const mStr = String(min).padStart(2, '0');
                     const sStr = String(sec).padStart(2, '0');
-                    // Menambahkan detik, font custom, dan warna custom
                     DOM.layerClockArea.innerHTML = `
                         <div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor};">
                             ${hStr}:${mStr}:${sStr}
@@ -1053,7 +1086,6 @@
                     DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = '';
                 }
 
-                // --- 2. Alarm Trigger Check ---
                 if (state.alarmActive && state.alarmTime !== '') {
                     const hStr = String(hr).padStart(2, '0');
                     const mStr = String(min).padStart(2, '0');
@@ -1062,7 +1094,6 @@
                     }
                 }
 
-                // --- 3. Smart Auto Mode (18:00 - 05:59) ---
                 if (state.autoNightMode) {
                     const isNight = (hr >= 18 || hr < 6);
                     if (isNight && !TimeCtrl.isNightModeTriggered) {
@@ -1076,7 +1107,6 @@
                     }
                 }
 
-                // --- 4. Sleep Timer Visuals ---
                 if (TimeCtrl.timerEndTime) {
                     const diff = TimeCtrl.timerEndTime - now.getTime();
                     if (diff <= 0) {
@@ -1161,19 +1191,16 @@
             play: () => {
                 AudioCtrl.stop(); 
                 
-                // 1. Play Custom Uploaded Audio (if any)
                 if (state.useCustomAudio && DOM.customAudioPlayer.src) {
                     DOM.customAudioPlayer.volume = state.masterVolume;
                     DOM.customAudioPlayer.play().catch(e=>console.log("Audio play blocked by browser"));
                 }
 
-                // 2. Play YouTube Video (if loaded)
                 if (ytPlayerReady && ytPlayer && state.ytVideoId) {
                     ytPlayer.setVolume(state.masterVolume * 100);
                     ytPlayer.playVideo();
                 }
 
-                // 3. Play Synth Audio
                 AudioCtrl.initCtx();
                 if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
                 AudioCtrl.masterGain.gain.value = state.masterVolume;
@@ -1253,6 +1280,7 @@
                             state.lat = pos.coords.latitude; state.lng = pos.coords.longitude;
                             alert(`Lokasi Ditemukan! Lat: ${state.lat.toFixed(2)}, Lng: ${state.lng.toFixed(2)}`);
                             LocationCtrl.fetchPrayer();
+                            StorageCtrl.save(true); // Auto Save Lokasi
                         },
                         (err) => alert("Gagal akses lokasi. Gunakan koneksi HTTPS/Izinkan browser.")
                     );
@@ -1271,7 +1299,6 @@
                     const endX = e.changedTouches[0].screenX;
                     const diff = endX - GestureCtrl.touchStartX;
                     
-                    // Swipe logic
                     if (Math.abs(diff) > 100) {
                         const themes = ['night-sky', 'ocean', 'forest', 'blank'];
                         let currIdx = themes.indexOf(state.theme);
@@ -1279,9 +1306,9 @@
                         else currIdx = (currIdx + 1) % themes.length; 
                         state.theme = themes[currIdx];
                         AdminCtrl.syncUIToState(); ThemeCtrl.render();
+                        StorageCtrl.save(true); // Auto Save setelah Swipe
                     }
 
-                    // Double tap logic for Audio
                     const now = new Date().getTime();
                     if(now - GestureCtrl.lastTap < 300 && Math.abs(diff) < 20) {
                         if(Object.keys(AudioCtrl.nodes).length > 0 || !DOM.customAudioPlayer.paused) AudioCtrl.stop();
@@ -1290,7 +1317,6 @@
                     GestureCtrl.lastTap = now;
                 });
 
-                // Auto Fullscreen on first click
                 const goFullscreen = () => {
                     if (!document.fullscreenElement) {
                         document.documentElement.requestFullscreen().catch(()=>{});
@@ -1302,13 +1328,12 @@
         };
 
         // ==========================================
-        // 8. ADMIN UI & BINDINGS
+        // 8. ADMIN UI & BINDINGS (Dengan Auto-Sync Ke Firestore)
         // ==========================================
         const AdminCtrl = {
             tapCount: 0, tapTimeout: null,
             
             init: () => {
-                // Secret Tap Logic
                 DOM.trigger.addEventListener('click', () => {
                     AdminCtrl.tapCount++;
                     clearTimeout(AdminCtrl.tapTimeout);
@@ -1319,7 +1344,6 @@
                     AdminCtrl.tapTimeout = setTimeout(() => AdminCtrl.tapCount = 0, 3000);
                 });
 
-                // PIN Logic
                 DOM.btnCancelPin.addEventListener('click', () => { DOM.pinModal.style.display = 'none'; DOM.inPin.value=''; DOM.pinError.style.display='none';});
                 DOM.btnSubmitPin.addEventListener('click', () => {
                     if(DOM.inPin.value === state.adminPin) {
@@ -1333,92 +1357,93 @@
                 });
                 DOM.btnCloseAdmin.addEventListener('click', () => DOM.adminPanel.style.display = 'none');
 
-                // --- EVENT LISTENERS BINDING ---
+                // MENGUBAH SEMUA LISTENER AGAR OTOMATIS MEMANGGIL `StorageCtrl.save(true)`
                 
-                // SECTION 1: Presets & Auto
-                DOM.uiAutoNight.addEventListener('change', e => state.autoNightMode = e.target.checked);
+                DOM.uiAutoNight.addEventListener('change', e => { state.autoNightMode = e.target.checked; StorageCtrl.save(true); });
                 DOM.btnApplyPreset.addEventListener('click', () => {
                     const p = DOM.uiPreset.value;
                     if(Presets[p]) {
                         Object.assign(state, Presets[p]);
                         AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play();
+                        StorageCtrl.save(true);
                     }
                 });
                 DOM.uiSleepTimer.addEventListener('change', e => {
                     state.sleepTimer = parseInt(e.target.value);
                     TimeCtrl.startSleepTimer(state.sleepTimer);
+                    StorageCtrl.save(true);
                 });
 
-                // NEW: Alarm
-                DOM.uiAlarmTime.addEventListener('input', e => state.alarmTime = e.target.value);
-                DOM.uiAlarmActive.addEventListener('change', e => state.alarmActive = e.target.checked);
+                DOM.uiAlarmTime.addEventListener('input', e => { state.alarmTime = e.target.value; StorageCtrl.save(true); });
+                DOM.uiAlarmActive.addEventListener('change', e => { state.alarmActive = e.target.checked; StorageCtrl.save(true); });
                 DOM.btnStopAlarm.addEventListener('click', AlarmCtrl.stop);
 
-                // SECTION 2: Themes
                 DOM.uiTheme.addEventListener('change', e => { 
                     state.theme = e.target.value; 
                     DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none';
                     ThemeCtrl.render(); 
+                    StorageCtrl.save(true);
                 });
                 ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => {
-                    state[id.replace('ui','custom')] = e.target.value; ThemeCtrl.render();
+                    state[id.replace('ui','custom')] = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true);
                 }));
-                DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; ThemeCtrl.render(); });
-                DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; ThemeCtrl.render(); });
-                DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; ThemeCtrl.render(); });
-                DOM.uiPerf.addEventListener('change', e => { state.performanceMode = e.target.checked; ThemeCtrl.render(); });
+                DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; ThemeCtrl.render(); StorageCtrl.save(true); });
+                DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
+                DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; ThemeCtrl.render(); StorageCtrl.save(true); });
+                DOM.uiPerf.addEventListener('change', e => { state.performanceMode = e.target.checked; ThemeCtrl.render(); StorageCtrl.save(true); });
 
-                // NEW: YouTube & Quran
                 DOM.btnLoadYt.addEventListener('click', () => {
                     state.ytVideoId = DOM.uiYtId.value.trim();
                     if(ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
                         ytPlayer.loadVideoById(state.ytVideoId);
                         alert("YouTube Berhasil Dimuat!");
+                        StorageCtrl.save(true);
                     } else if (!ytPlayerReady) {
                         alert("API YouTube belum siap. Harap tunggu sebentar lalu coba lagi.");
                     }
                 });
-                DOM.uiQuranSurah.addEventListener('input', e => state.quranSurah = e.target.value);
+                DOM.uiQuranSurah.addEventListener('input', e => { state.quranSurah = e.target.value; StorageCtrl.save(true); });
                 DOM.uiShowQuran.addEventListener('change', e => {
                     state.showQuran = e.target.checked;
                     QuranCtrl.fetchAndRender();
+                    StorageCtrl.save(true);
                 });
 
-                // SECTION 3: Audio
                 DOM.uiCustomAudioFile.addEventListener('change', e => {
                     const file = e.target.files[0];
                     if(file) {
                         DOM.customAudioPlayer.src = URL.createObjectURL(file);
                         state.useCustomAudio = true;
                         DOM.txtCustomAudioName.innerText = "Loaded: " + file.name;
+                        // Catatan: File lokal tidak disync via Firebase karena ukurannya memakan bandwidth db
                     }
                 });
-                DOM.tglWN.addEventListener('change', e => {state.enWhiteNoise = e.target.checked;});
-                DOM.tglOc.addEventListener('change', e => {state.enOcean = e.target.checked;});
-                DOM.tglHb.addEventListener('change', e => {state.enHeartbeat = e.target.checked;});
-                DOM.volWN.addEventListener('input', e => state.volWhiteNoise = e.target.value/100);
-                DOM.volOc.addEventListener('input', e => state.volOcean = e.target.value/100);
-                DOM.volHb.addEventListener('input', e => state.volHeartbeat = e.target.value/100);
-                DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; AudioCtrl.updateVolumes();});
+                DOM.tglWN.addEventListener('change', e => { state.enWhiteNoise = e.target.checked; StorageCtrl.save(true); });
+                DOM.tglOc.addEventListener('change', e => { state.enOcean = e.target.checked; StorageCtrl.save(true); });
+                DOM.tglHb.addEventListener('change', e => { state.enHeartbeat = e.target.checked; StorageCtrl.save(true); });
+                DOM.volWN.addEventListener('input', e => { state.volWhiteNoise = e.target.value/100; StorageCtrl.save(true); });
+                DOM.volOc.addEventListener('input', e => { state.volOcean = e.target.value/100; StorageCtrl.save(true); });
+                DOM.volHb.addEventListener('input', e => { state.volHeartbeat = e.target.value/100; StorageCtrl.save(true); });
+                DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; AudioCtrl.updateVolumes(); StorageCtrl.save(true); });
                 
-                DOM.btnPlay.addEventListener('click', AudioCtrl.play);
-                DOM.btnStop.addEventListener('click', AudioCtrl.stop);
+                DOM.btnPlay.addEventListener('click', () => { AudioCtrl.play(); StorageCtrl.save(true); }); // Memanggil fungsi Play dan menyimpannya di DB
+                DOM.btnStop.addEventListener('click', () => { AudioCtrl.stop(); StorageCtrl.save(true); });
 
-                // SECTION 4: Clock & Display
-                DOM.btnSaveName.addEventListener('click', () => { state.babyName = DOM.uiBabyName.value; ThemeCtrl.render(); });
-                DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; TimeCtrl.update(); });
-                DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; TimeCtrl.update(); });
-                DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; TimeCtrl.update(); });
-                DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; LocationCtrl.fetchPrayer(); });
+                DOM.btnSaveName.addEventListener('click', () => { state.babyName = DOM.uiBabyName.value; ThemeCtrl.render(); StorageCtrl.save(true); });
+                DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
+                DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
+                DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
+                DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; LocationCtrl.fetchPrayer(); StorageCtrl.save(true); });
                 DOM.btnGeo.addEventListener('click', LocationCtrl.autoDetect);
 
-                // SECTION 5: Storage
                 DOM.btnChangePin.addEventListener('click', () => {
                     const np = DOM.uiNewPin.value;
-                    if(np.length === 4) { state.adminPin = np; alert("PIN Updated!"); DOM.uiNewPin.value=''; }
+                    if(np.length === 4) { state.adminPin = np; alert("PIN Updated!"); DOM.uiNewPin.value=''; StorageCtrl.save(true); }
                     else alert("PIN harus 4 digit!");
                 });
-                DOM.btnSaveState.addEventListener('click', StorageCtrl.save);
+                
+                // Jika tombol "Save" manual ditekan, maka param=false agar muncul notifikasi "Pengaturan tersimpan"
+                DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
                 DOM.btnResetState.addEventListener('click', StorageCtrl.reset);
             },
 
@@ -1465,11 +1490,16 @@
             GestureCtrl.init();     
             QuranCtrl.fetchAndRender();
             
-            // Inject YouTube API
             loadYouTubeScript();
-
-            // Re-fetch jadwal sholat tiap ganti hari (tiap 12 jam)
             setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
+
+            // MENGAKTIFKAN LISTENER FIREBASE
+            // Jika modul Firebase sudah siap, langsung panggil. Jika belum, tunggu event "firebase-ready"
+            if (window.firebaseDb) {
+                StorageCtrl.listenFirebase();
+            } else {
+                window.addEventListener('firebase-ready', StorageCtrl.listenFirebase);
+            }
         }
 
         window.onload = startApp;
