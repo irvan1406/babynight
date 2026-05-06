@@ -730,19 +730,31 @@
 
         let state = { ...defaultState };
 
+        let firebaseSyncTimeout = null;
+        let firebaseErrorAlerted = false; // Mencegah spam popup error
+
         const StorageCtrl = {
-            // Ditambahkan silent parameter agar tidak muncul popup saat Auto-Sync berjalan
             save: async (silent = true) => {
                 localStorage.setItem('babyProjectorState', JSON.stringify(state));
                 
-                // SINKRONISASI REAL-TIME KE FIREBASE FIRESTORE
+                // SINKRONISASI REAL-TIME KE FIREBASE FIRESTORE (DENGAN DEBOUNCE UNTUK MENCEGAH SPAM)
                 if (window.firebaseDb) {
-                    try {
-                        const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
-                        await window.firebaseSetDoc(docRef, state);
-                    } catch (e) {
-                        console.error("Gagal sync ke Firebase. Pastikan Rules Firestore Anda diset 'allow read, write: if true;'", e);
-                    }
+                    clearTimeout(firebaseSyncTimeout);
+                    
+                    // Menunggu 400ms setelah user berhenti menggeser slider/klik sebelum mengirim data
+                    firebaseSyncTimeout = setTimeout(async () => {
+                        try {
+                            const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                            await window.firebaseSetDoc(docRef, state);
+                            console.log("Berhasil mensinkronkan data ke Cloud Firestore!");
+                        } catch (e) {
+                            console.error("Gagal sync ke Firebase:", e);
+                            if (!firebaseErrorAlerted) {
+                                alert("KONEKSI FIREBASE DITOLAK!\n\nPesan Error: " + e.message + "\n\nSOLUSI (Buka di Laptop/PC):\n1. Buka Firebase Console.\n2. Masuk ke menu 'Firestore Database'.\n3. Klik tab 'Rules' (Aturan).\n4. Ubah baris aturan menjadi:\n   allow read, write: if true;\n5. Klik Publish/Terbitkan.");
+                                firebaseErrorAlerted = true; // Hanya alert 1 kali agar tidak mengganggu
+                            }
+                        }
+                    }, 400); 
                 }
 
                 if (!silent) alert("Pengaturan Tersimpan di LocalStorage & Firebase!");
@@ -757,8 +769,11 @@
             listenFirebase: () => {
                 if (window.firebaseDb) {
                     const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                    
+                    // onSnapshot akan langsung memicu kode ini setiap kali ada HP/Laptop yang mengubah database
                     window.firebaseOnSnapshot(docRef, (docSnap) => {
                         if (docSnap.exists()) {
+                            console.log("Menerima pembaruan sinkronisasi otomatis dari perangkat lain!");
                             const data = docSnap.data();
                             state = { ...state, ...data }; // Gabungkan state baru
                             
@@ -769,6 +784,12 @@
                             AudioCtrl.updateVolumes();
                             if(state.showQuran) QuranCtrl.fetchAndRender();
                             else document.getElementById('quran-layer').innerHTML = '';
+                        }
+                    }, (error) => {
+                        console.error("Error Listener Firebase:", error);
+                        if (!firebaseErrorAlerted) {
+                            alert("FIREBASE LISTENER TERPUTUS!\n\nPesan Error: " + error.message + "\n\nPastikan Rules Firestore Anda sudah di-set 'allow read, write: if true;'.");
+                            firebaseErrorAlerted = true;
                         }
                     });
                 }
@@ -805,6 +826,7 @@
                 }
             });
         }
+        window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady; // Wajib expose ke global agar dipanggil API YT
 
         function loadYouTubeScript() {
             let tag = document.createElement('script');
