@@ -659,6 +659,26 @@
     <!-- ========================================================
          6. JAVASCRIPT MODULAR LOGIC
          ======================================================== -->
+    
+    <!-- MENGINISIALISASI FIREBASE SDK (Perubahan Utama) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyDLLyQ7jAfugtPoPYZrwDdkWTJ9q2VYSsQ",
+          authDomain: "babynight-b1fcc.firebaseapp.com",
+          projectId: "babynight-b1fcc",
+          storageBucket: "babynight-b1fcc.firebasestorage.app",
+          messagingSenderId: "526473281843",
+          appId: "1:526473281843:web:e02f4fbde4d49f77d3fe46",
+          measurementId: "G-4QSWTXVN37"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        window.firebaseApp = app; // Membuat app Firebase dapat diakses secara global jika dibutuhkan kelak
+    </script>
+
     <script>
         /**
          * BABY NIGHT PROJECTOR - ADVANCED MODULAR SYSTEM
