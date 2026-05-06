@@ -286,6 +286,37 @@
 </head>
 <body>
 
+    <!-- MENGINISIALISASI FIREBASE SDK (ES MODULES - STABIL & MODERN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Baru Sesuai Permintaan
+        const firebaseConfig = {
+          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
+          authDomain: "bbynight-d2bb0.firebaseapp.com",
+          projectId: "bbynight-d2bb0",
+          storageBucket: "bbynight-d2bb0.firebasestorage.app",
+          messagingSenderId: "169917444760",
+          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
+          measurementId: "G-3CQQWZE5QB"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            // Mengekspos variabel Firebase ke sistem global agar bisa dibaca fungsi di bawah
+            window.firebaseDb = getFirestore(app);
+            window.firebaseDoc = doc;
+            window.firebaseSetDoc = setDoc;
+            window.firebaseOnSnapshot = onSnapshot;
+
+            // Memberikan sinyal bahwa Firebase telah berhasil dimuat
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (e) {
+            console.error("Gagal menginisialisasi Firebase:", e);
+        }
+    </script>
+
     <!-- 1. AREA PEMICU RAHASIA UNTUK ADMIN -->
     <div id="secret-trigger" title="Tap 5x cepat di sini untuk Admin Mode"></div>
 
@@ -608,26 +639,9 @@
     </div>
 
     <!-- ========================================================
-         6. JAVASCRIPT MODULAR LOGIC (FIRESTORE)
+         6. JAVASCRIPT MODULAR LOGIC
          ======================================================== -->
-    
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
-          authDomain: "bbynight-d2bb0.firebaseapp.com",
-          projectId: "bbynight-d2bb0",
-          storageBucket: "bbynight-d2bb0.firebasestorage.app",
-          messagingSenderId: "169917444760",
-          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
-          measurementId: "G-3CQQWZE5QB"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(); 
-
         const defaultState = {
             theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
             showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, adminPin: '1234',
@@ -647,16 +661,19 @@
         const StorageCtrl = {
             save: async (silent = true) => {
                 localStorage.setItem('babyProjectorState', JSON.stringify(state));
-                if (typeof db !== 'undefined') {
+                
+                if (window.firebaseDb) {
                     clearTimeout(firebaseSyncTimeout);
                     firebaseSyncTimeout = setTimeout(async () => {
                         try {
-                            await db.collection("baby_night_settings").doc("global_state").set(state);
+                            const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                            await window.firebaseSetDoc(docRef, state);
                         } catch (e) {
                             if (!firebaseErrorAlerted) { alert("FIRESTORE DITOLAK: Pastikan Rules 'allow read, write: if true;'"); firebaseErrorAlerted = true; }
                         }
                     }, 400); 
                 }
+                
                 if (!silent) alert("Tersimpan di LocalStorage & Firebase!");
             },
             load: () => {
@@ -664,10 +681,12 @@
                 if (saved) Object.assign(state, defaultState, JSON.parse(saved));
             },
             listenFirebase: () => {
-                if (typeof db !== 'undefined') {
-                    db.collection("baby_night_settings").doc("global_state").onSnapshot((docSnap) => {
-                        if (docSnap.exists) {
-                            Object.assign(state, docSnap.data()); 
+                if (window.firebaseDb) {
+                    const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                    window.firebaseOnSnapshot(docRef, (docSnap) => {
+                        const data = docSnap.data(); // Mengambil data secara aman
+                        if (data) {
+                            Object.assign(state, data); 
                             AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
                             if(state.showQuran && QuranCtrl.currentSurahRendered !== state.quranSurah) QuranCtrl.fetchAndRender();
                             else if (!state.showQuran) QuranCtrl.stop();
@@ -681,6 +700,8 @@
                             if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
                             else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
                         }
+                    }, (error) => {
+                        console.error("Firebase Snapshot Error:", error);
                     });
                 }
             },
@@ -849,7 +870,7 @@
                 } else DOM.layerBabyName.style.display = 'none';
 
                 // Render Custom Media Overlay
-                if(state.overlayTxt.trim() !== '') { DOM.layerOverlayTxt.style.display = 'block'; DOM.layerOverlayTxt.innerText = state.overlayTxt; } else DOM.layerOverlayTxt.style.display = 'none';
+                if(state.overlayText.trim() !== '') { DOM.layerOverlayTxt.style.display = 'block'; DOM.layerOverlayTxt.innerText = state.overlayText; } else DOM.layerOverlayTxt.style.display = 'none';
                 if(state.overlayImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = state.overlayImg; } else DOM.layerOverlayImg.style.display = 'none';
 
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
@@ -1030,7 +1051,7 @@
                 DOM.uiBabyName.addEventListener('input', e => { state.babyName = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiBabyFont.addEventListener('change', e => { state.babyFont = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiBabyColor.addEventListener('input', e => { state.babyColor = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiOverlayTxt.addEventListener('input', e => { state.overlayTxt = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
+                DOM.uiOverlayTxt.addEventListener('input', e => { state.overlayText = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiOverlayImg.addEventListener('input', e => { state.overlayImg = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
 
                 // Quran Setup
@@ -1106,7 +1127,13 @@
             StorageCtrl.load(); AdminCtrl.init(); AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.init();        
             LocationCtrl.fetchPrayer(); GestureCtrl.init(); QuranCtrl.fetchAndRender();
             loadYouTubeScript(); setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
-            StorageCtrl.listenFirebase(); 
+            
+            // JALANKAN LISTENER FIREBASE HANYA JIKA FIREBASE SUDAH SIAP
+            if (window.firebaseDb) {
+                StorageCtrl.listenFirebase();
+            } else {
+                window.addEventListener('firebase-ready', StorageCtrl.listenFirebase);
+            }
         }
         window.onload = startApp;
     </script>
