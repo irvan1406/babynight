@@ -644,29 +644,28 @@
     </div>
 
     <!-- ========================================================
-         6. JAVASCRIPT MODULAR LOGIC (DIPERBARUI KE REALTIME DATABASE)
+         6. JAVASCRIPT MODULAR LOGIC (DIPERBARUI KE FIRESTORE)
          ======================================================== -->
     
-    <!-- MENGGUNAKAN FIREBASE DATABASE (REALTIME DATABASE) BUKAN FIRESTORE -->
+    <!-- MENGGUNAKAN FIREBASE FIRESTORE DATABASE -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // Inisialisasi Firebase Konfigurasi Anda (Ditambah URL Realtime Database generik)
+        // Inisialisasi Firebase Konfigurasi Anda 
         const firebaseConfig = {
-          apiKey: "AIzaSyDLLyQ7jAfugtPoPYZrwDdkWTJ9q2VYSsQ",
-          authDomain: "babynight-b1fcc.firebaseapp.com",
-          databaseURL: "https://babynight-b1fcc-default-rtdb.firebaseio.com", // Penting untuk Realtime DB!
-          projectId: "babynight-b1fcc",
-          storageBucket: "babynight-b1fcc.firebasestorage.app",
-          messagingSenderId: "526473281843",
-          appId: "1:526473281843:web:e02f4fbde4d49f77d3fe46",
-          measurementId: "G-4QSWTXVN37"
+          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
+          authDomain: "bbynight-d2bb0.firebaseapp.com",
+          projectId: "bbynight-d2bb0",
+          storageBucket: "bbynight-d2bb0.firebasestorage.app",
+          messagingSenderId: "169917444760",
+          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
+          measurementId: "G-3CQQWZE5QB"
         };
 
         // Mulai Mesin Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(); // Memanggil Realtime Database
+        const db = firebase.firestore(); // Memanggil Firestore Database
 
         /**
          * BABY NIGHT PROJECTOR - ADVANCED MODULAR SYSTEM
@@ -691,18 +690,18 @@
             save: async (silent = true) => {
                 localStorage.setItem('babyProjectorState', JSON.stringify(state));
                 
-                // MENGGUNAKAN REALTIME DATABASE (Tidak terpengaruh masalah billing credit card)
+                // MENGGUNAKAN FIRESTORE DATABASE
                 if (typeof db !== 'undefined') {
                     clearTimeout(firebaseSyncTimeout);
                     
                     firebaseSyncTimeout = setTimeout(async () => {
                         try {
-                            await db.ref("baby_night_settings/global_state").set(state);
-                            console.log("Sinkronisasi Realtime Sukses!");
+                            await db.collection("baby_night_settings").doc("global_state").set(state);
+                            console.log("Sinkronisasi Firestore Sukses!");
                         } catch (e) {
-                            console.error("Gagal sync ke Realtime Database:", e);
+                            console.error("Gagal sync ke Firestore:", e);
                             if (!firebaseErrorAlerted) {
-                                alert("FIREBASE REALTIME DB DITOLAK!\n\nPesan Error: " + e.message + "\n\nPastikan Anda sudah mengubah Rules REALTIME DATABASE menjadi true.");
+                                alert("FIREBASE FIRESTORE DITOLAK!\n\nPesan Error: " + e.message + "\n\nPastikan Anda sudah mengubah Rules FIRESTORE menjadi 'allow read, write: if true;'.");
                                 firebaseErrorAlerted = true;
                             }
                         }
@@ -717,12 +716,12 @@
                 if (saved) Object.assign(state, defaultState, JSON.parse(saved));
             },
             
-            // FUNGSI MENDENGARKAN DARI REALTIME DATABASE
+            // FUNGSI MENDENGARKAN DARI FIRESTORE
             listenFirebase: () => {
                 if (typeof db !== 'undefined') {
-                    db.ref("baby_night_settings/global_state").on('value', (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
+                    db.collection("baby_night_settings").doc("global_state").onSnapshot((docSnap) => {
+                        if (docSnap.exists) {
+                            const data = docSnap.data();
                             console.log("Menerima data dari HP/Laptop lain!");
                             Object.assign(state, data); 
                             
@@ -737,7 +736,7 @@
                     }, (error) => {
                         console.error("Error Listener Firebase:", error);
                         if (!firebaseErrorAlerted) {
-                            alert("FIREBASE LISTENER TERPUTUS!\n\nPesan Error: " + error.message + "\n\nPastikan Rules Realtime Database diizinkan baca/tulis (.read: true, .write: true).");
+                            alert("FIREBASE LISTENER TERPUTUS!\n\nPesan Error: " + error.message + "\n\nPastikan Rules Firestore diizinkan baca/tulis (allow read, write: if true;).");
                             firebaseErrorAlerted = true;
                         }
                     });
