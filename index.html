@@ -41,7 +41,7 @@
             transition: background 1s ease;
         }
 
-        /* Layer Custom Overlay (Teks & Media) */
+        /* Layer Custom Overlay (Media Gambar) */
         #custom-overlay-layer {
             position: absolute;
             top: 5%; right: 5%;
@@ -55,9 +55,30 @@
             max-width: 150px; border-radius: 10px; margin-bottom: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        #custom-overlay-layer .overlay-text {
-            font-size: 1.5rem; font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+
+        /* Layer Teks Berjalan (Marquee LED) */
+        #marquee-layer {
+            position: absolute;
+            bottom: 120px; /* Di atas layer sholat */
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee linear infinite;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.9);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
         }
 
         /* Layer Nama Bayi */
@@ -188,15 +209,15 @@
            ======================================================== */
         .clock-digital {
             font-size: 8rem; font-weight: bold; letter-spacing: 2px;
-            margin-bottom: 10px; transition: color 0.3s ease, font-family 0.3s ease;
-            /* PENTING: Memaksa angka memiliki lebar yang sama agar jam stabil tidak bergoyang */
+            margin-bottom: 10px; transition: color 0.3s ease, font-family 0.3s ease, transform 0.3s ease;
             font-variant-numeric: tabular-nums; 
             text-align: center; width: 100%;
         }
-        .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; width: 100%; text-align: center; }
+        .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; width: 100%; text-align: center; transition: transform 0.3s ease; }
         .clock-analog {
             width: 300px; height: 300px; border: 5px solid rgba(255,255,255,0.3); border-radius: 50%;
             position: relative; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); margin: 0 auto 20px auto;
+            transition: transform 0.3s ease;
         }
         .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: #fff; border-radius: 10px; transform: translateX(-50%); }
         .hand-hour { width: 6px; height: 80px; background: rgba(255,255,255,0.8); }
@@ -208,14 +229,6 @@
            5. ELEGAN ADMIN LAYER UI & TABS
            ======================================================== */
         #secret-trigger { position: absolute; top: 0; left: 0; width: 100px; height: 100px; z-index: 100; cursor: pointer; }
-        .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200;
-            display: none; justify-content: center; align-items: center;
-        }
-
-        .pin-box { background: #1a1a24; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-        .pin-box input { font-size: 2rem; width: 150px; text-align: center; letter-spacing: 5px; background: #000; color: #fff; border: 2px solid #4facfe; border-radius: 8px; padding: 10px; margin: 20px 0; outline: none; }
 
         /* Admin Panel Modern Redesign */
         #admin-panel {
@@ -291,7 +304,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Baru Sesuai Permintaan
+        // Konfigurasi Baru
         const firebaseConfig = {
           apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
           authDomain: "bbynight-d2bb0.firebaseapp.com",
@@ -304,13 +317,10 @@
 
         try {
             const app = initializeApp(firebaseConfig);
-            // Mengekspos variabel Firebase ke sistem global agar bisa dibaca fungsi di bawah
             window.firebaseDb = getFirestore(app);
             window.firebaseDoc = doc;
             window.firebaseSetDoc = setDoc;
             window.firebaseOnSnapshot = onSnapshot;
-
-            // Memberikan sinyal bahwa Firebase telah berhasil dimuat
             window.dispatchEvent(new Event('firebase-ready'));
         } catch (e) {
             console.error("Gagal menginisialisasi Firebase:", e);
@@ -319,20 +329,6 @@
 
     <!-- 1. AREA PEMICU RAHASIA UNTUK ADMIN -->
     <div id="secret-trigger" title="Tap 5x cepat di sini untuk Admin Mode"></div>
-
-    <!-- 2. PIN MODAL -->
-    <div id="pin-modal" class="modal-overlay">
-        <div class="pin-box">
-            <h3 style="color: #4facfe; margin-bottom: 10px;">Security PIN Required</h3>
-            <p style="font-size: 0.8rem; color: #aaa;">Default PIN: 1234</p>
-            <input type="password" id="input-pin" maxlength="4" placeholder="••••">
-            <div class="btn-group">
-                <button class="btn btn-danger" id="btn-cancel-pin">Cancel</button>
-                <button class="btn btn-primary" id="btn-submit-pin">Unlock</button>
-            </div>
-            <p id="pin-error" style="color: #ff4757; font-size: 0.8rem; margin-top: 10px; display: none;">PIN Salah!</p>
-        </div>
-    </div>
 
     <!-- 3. TOMBOL MATIKAN ALARM DI LAYAR (MUNCUL SAAT BUNYI) -->
     <button id="display-stop-alarm">MATIKAN ALARM</button>
@@ -351,7 +347,11 @@
         <!-- CUSTOM OVERLAY MEDIA/TEKS -->
         <div id="custom-overlay-layer">
             <img id="overlay-img-render" style="display:none;" src="" alt="Overlay Image">
-            <div id="overlay-text-render" class="overlay-text" style="display:none;"></div>
+        </div>
+        
+        <!-- CUSTOM OVERLAY LED TEXT (BERJALAN) -->
+        <div id="marquee-layer" style="display:none;">
+            <div id="overlay-text-render" class="marquee-text"></div>
         </div>
 
         <div id="quran-layer"></div>
@@ -382,7 +382,7 @@
 
         <div class="admin-tabs">
             <button class="tab-btn active" data-target="sec-visual">🎨 Visuals</button>
-            <button class="tab-btn" data-target="sec-text">✍️ Teks & Media</button>
+            <button class="tab-btn" data-target="sec-text">✍️ Teks LED & Media</button>
             <button class="tab-btn" data-target="sec-audio">🎵 Audio & YT</button>
             <button class="tab-btn" data-target="sec-quran">📖 Quran</button>
             <button class="tab-btn" data-target="sec-time">🕰️ Time & Alarm</button>
@@ -465,11 +465,11 @@
                 </div>
 
                 <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <label>Custom Overlay Teks (Pojok Kanan)</label>
-                    <input type="text" id="set-overlay-text" placeholder="Misal: Have a nice dream!">
+                    <label>Teks LED Berjalan di Bawah (Marquee)</label>
+                    <input type="text" id="set-overlay-text" placeholder="Misal: Selamat malam semuanya...">
                 </div>
                 <div class="form-group">
-                    <label>Custom Overlay Media (Link URL Gambar/GIF)</label>
+                    <label>Custom Overlay Media Pojok Kanan (Link Gambar/GIF)</label>
                     <input type="text" id="set-overlay-img" placeholder="https://domain.com/gambar.gif">
                 </div>
             </div>
@@ -576,10 +576,21 @@
                             <input type="checkbox" id="set-prayer" checked> <label>Sholat</label>
                         </div>
                     </div>
-                    <button class="btn btn-warning" id="btn-geo" style="width:100%; margin-top:10px;">📍 Auto-Detect Lokasi Sholat (GPS)</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ukuran Jam <span class="slider-val" id="val-clock-size">1x</span></label>
+                    <input type="range" id="set-clock-size" min="0.5" max="3" step="0.1" value="1">
                 </div>
 
-                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                <div class="checkbox-group" style="margin-top: 10px; margin-bottom: 20px;">
+                    <input type="checkbox" id="set-clock-seconds" checked>
+                    <label for="set-clock-seconds">Tampilkan Detik (Jam Utama)</label>
+                </div>
+
+                <button class="btn btn-warning" id="btn-geo" style="width:100%; margin-top:10px;">📍 Auto-Detect Lokasi Sholat (GPS)</button>
+
+                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top: 20px;">
                     <label>Sistem Alarm & Bangun</label>
                     <div class="form-group-flex">
                         <input type="time" id="set-alarm-time" style="flex:1">
@@ -620,14 +631,6 @@
                         <option value="120">2 Jam</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label>Keamanan</label>
-                    <div class="form-group-flex">
-                        <input type="password" id="set-new-pin" placeholder="Ganti PIN (4 digit)" maxlength="4" style="flex:2">
-                        <button class="btn btn-primary" id="btn-change-pin" style="flex:1;">Update</button>
-                    </div>
-                </div>
                 
                 <div class="btn-group">
                     <button class="btn btn-success" id="btn-save-state">💾 Save Data</button>
@@ -644,7 +647,8 @@
     <script>
         const defaultState = {
             theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
-            showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, adminPin: '1234',
+            clockSize: 1, clockSeconds: true,
+            showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
             particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
             masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5,
             enHeartbeat: false, volHeartbeat: 0.8, useCustomAudio: false, ytVideoId: '', ytPlayState: false,
@@ -669,7 +673,7 @@
                             const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
                             await window.firebaseSetDoc(docRef, state);
                         } catch (e) {
-                            if (!firebaseErrorAlerted) { alert("FIRESTORE DITOLAK: Pastikan Rules 'allow read, write: if true;'"); firebaseErrorAlerted = true; }
+                            if (!firebaseErrorAlerted) { console.error("FIRESTORE GAGAL DISIMPAN", e); firebaseErrorAlerted = true; }
                         }
                     }, 400); 
                 }
@@ -684,19 +688,17 @@
                 if (window.firebaseDb) {
                     const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
                     window.firebaseOnSnapshot(docRef, (docSnap) => {
-                        const data = docSnap.data(); // Mengambil data secara aman
+                        const data = docSnap.data(); 
                         if (data) {
                             Object.assign(state, data); 
                             AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
                             if(state.showQuran && QuranCtrl.currentSurahRendered !== state.quranSurah) QuranCtrl.fetchAndRender();
                             else if (!state.showQuran) QuranCtrl.stop();
                             
-                            // YT Sync Control
                             if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
                                 if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
                             }
                             
-                            // Alarm Sync Check
                             if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
                             else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
                         }
@@ -745,17 +747,16 @@
             playAyahLoop: () => {
                 if(!state.showQuran || QuranCtrl.ayahs.length === 0) return;
                 const layer = document.getElementById('quran-layer');
-                if(QuranCtrl.currentAyahIdx >= QuranCtrl.ayahs.length) QuranCtrl.currentAyahIdx = 0; // Loop kembali ke awal
+                if(QuranCtrl.currentAyahIdx >= QuranCtrl.ayahs.length) QuranCtrl.currentAyahIdx = 0; 
                 
                 const ayahObj = QuranCtrl.ayahs[QuranCtrl.currentAyahIdx];
                 const text = ayahObj.text;
                 
-                layer.style.opacity = 0; // Animasi fade out
+                layer.style.opacity = 0; 
                 setTimeout(() => {
                     layer.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
-                    layer.style.opacity = 1; // Animasi fade in
+                    layer.style.opacity = 1; 
                     
-                    // Durasi cerdas berdasarkan panjang teks ayat * kecepatan pilihan user
                     const duration = (text.length * state.quranSpeed) + 2000; 
                     QuranCtrl.currentAyahIdx++;
                     QuranCtrl.timer = setTimeout(QuranCtrl.playAyahLoop, duration);
@@ -772,8 +773,8 @@
                 state.isAlarmRinging = true; StorageCtrl.save(true);
                 
                 document.getElementById('brightness-overlay').classList.add('alarm-flash');
-                document.getElementById('btn-stop-alarm').style.display = 'block'; // Di Panel Admin
-                document.getElementById('display-stop-alarm').style.display = 'block'; // Tombol Besar di Layar
+                document.getElementById('btn-stop-alarm').style.display = 'block'; 
+                document.getElementById('display-stop-alarm').style.display = 'block'; 
 
                 if (!AlarmCtrl.ctx) AlarmCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if(AlarmCtrl.ctx.state === 'suspended') AlarmCtrl.ctx.resume();
@@ -798,13 +799,13 @@
         };
 
         const DOM = {
-            trigger: document.getElementById('secret-trigger'), pinModal: document.getElementById('pin-modal'), inPin: document.getElementById('input-pin'),
-            btnSubmitPin: document.getElementById('btn-submit-pin'), btnCancelPin: document.getElementById('btn-cancel-pin'), pinError: document.getElementById('pin-error'),
+            trigger: document.getElementById('secret-trigger'),
             adminPanel: document.getElementById('admin-panel'), btnCloseAdmin: document.getElementById('btn-close-admin'),
             layerTheme: document.getElementById('theme-layer'), layerClockArea: document.getElementById('clock-render-area'), layerDate: document.getElementById('date-display'),
             layerPrayer: document.getElementById('prayer-layer'), layerOverlay: document.getElementById('brightness-overlay'),
             layerBabyName: document.getElementById('baby-name-layer'), sleepTimerDisp: document.getElementById('sleep-timer-display'), customAudioPlayer: document.getElementById('custom-audio-player'),
             btnDisplayStopAlarm: document.getElementById('display-stop-alarm'), layerOverlayImg: document.getElementById('overlay-img-render'), layerOverlayTxt: document.getElementById('overlay-text-render'),
+            layerMarquee: document.getElementById('marquee-layer'),
             
             uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'),
             uiBrightness: document.getElementById('set-brightness'), uiParticle: document.getElementById('set-particle'), uiSpeed: document.getElementById('set-speed'), uiPerf: document.getElementById('set-performance'),
@@ -818,10 +819,11 @@
             uiQuranSurah: document.getElementById('set-quran-surah'), uiShowQuran: document.getElementById('set-show-quran'), uiQuranSize: document.getElementById('set-quran-size'), uiQuranFont: document.getElementById('set-quran-font'), uiQuranSpeed: document.getElementById('set-quran-speed'),
             
             uiClock: document.getElementById('set-clock'), uiClockColor: document.getElementById('set-clock-color'), uiClockFont: document.getElementById('set-clock-font'), uiPrayer: document.getElementById('set-prayer'), btnGeo: document.getElementById('btn-geo'),
+            uiClockSize: document.getElementById('set-clock-size'), uiClockSeconds: document.getElementById('set-clock-seconds'),
             uiAlarmTime: document.getElementById('set-alarm-time'), uiAlarmActive: document.getElementById('set-alarm-active'), btnStopAlarm: document.getElementById('btn-stop-alarm'),
             
             uiAutoNight: document.getElementById('set-auto-night'), uiPreset: document.getElementById('set-preset'), btnApplyPreset: document.getElementById('btn-apply-preset'), uiSleepTimer: document.getElementById('set-sleep-timer'),
-            uiNewPin: document.getElementById('set-new-pin'), btnChangePin: document.getElementById('btn-change-pin'), btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state')
+            btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state')
         };
 
         const ThemeCtrl = {
@@ -863,15 +865,24 @@
                     DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 }
 
-                // Render Nama Bayi dengan Font & Color Baru
+                // Render Nama Bayi 
                 if(state.babyName.trim() !== '') { 
                     DOM.layerBabyName.style.display = 'block'; DOM.layerBabyName.innerText = state.babyName; 
                     DOM.layerBabyName.style.fontFamily = state.babyFont; DOM.layerBabyName.style.color = state.babyColor;
                 } else DOM.layerBabyName.style.display = 'none';
 
-                // Render Custom Media Overlay
-                if(state.overlayText.trim() !== '') { DOM.layerOverlayTxt.style.display = 'block'; DOM.layerOverlayTxt.innerText = state.overlayText; } else DOM.layerOverlayTxt.style.display = 'none';
+                // Render Custom Media Overlay (Gambar)
                 if(state.overlayImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = state.overlayImg; } else DOM.layerOverlayImg.style.display = 'none';
+                
+                // Render LED Marquee Text
+                if(state.overlayText.trim() !== '') { 
+                    DOM.layerMarquee.style.display = 'block'; 
+                    DOM.layerOverlayTxt.innerText = state.overlayText; 
+                    const durationMs = Math.max(10, state.overlayText.length * 0.3); // Kecepatan otomatis
+                    DOM.layerOverlayTxt.style.animationDuration = `${durationMs}s`;
+                } else {
+                    DOM.layerMarquee.style.display = 'none';
+                }
 
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
             }
@@ -889,15 +900,18 @@
                 const now = new Date();
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 DOM.layerDate.innerText = now.toLocaleDateString('id-ID', options);
+                DOM.layerDate.style.transform = `scale(${state.clockSize})`;
 
                 const hr = now.getHours(); const min = now.getMinutes(); const sec = now.getSeconds();
 
                 if (state.clockType === 'digital') {
                     const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0'); const sStr = String(sec).padStart(2, '0');
-                    DOM.layerClockArea.innerHTML = `<div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor};">${hStr}:${mStr}:${sStr}</div>`;
+                    const timeStr = state.clockSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+                    DOM.layerClockArea.innerHTML = `<div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;">${timeStr}</div>`;
                 } else if (state.clockType === 'analog') {
                     const sD = (sec / 60) * 360; const mD = (min / 60) * 360 + (sec / 60) * 6; const hD = (hr / 12) * 360 + (min / 60) * 30;
-                    DOM.layerClockArea.innerHTML = `<div class="clock-analog" style="border-color: ${state.clockColor};"><div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div><div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div><div class="hand hand-second" style="transform: translateX(-50%) rotate(${sD}deg)"></div><div class="analog-center"></div></div>`;
+                    const secondHand = state.clockSeconds ? `<div class="hand hand-second" style="transform: translateX(-50%) rotate(${sD}deg)"></div>` : '';
+                    DOM.layerClockArea.innerHTML = `<div class="clock-analog" style="border-color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;"><div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div><div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div>${secondHand}<div class="analog-center"></div></div>`;
                 } else { DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = ''; }
 
                 // Pemicu Alarm
@@ -1004,6 +1018,9 @@
             init: () => {
                 window.addEventListener('touchstart', e => GestureCtrl.touchStartX = e.changedTouches[0].screenX);
                 window.addEventListener('touchend', e => {
+                    // Mencegah ganti tema jika user menyentuh panel admin
+                    if (e.target.closest('#admin-panel') || e.target.closest('.admin-tabs')) return;
+
                     const endX = e.changedTouches[0].screenX; const diff = endX - GestureCtrl.touchStartX;
                     if (Math.abs(diff) > 100) {
                         const themes = ['night-sky', 'ocean', 'forest', 'sunset', 'aurora', 'galaxy', 'rain', 'snow', 'fire', 'underwater', 'clouds', 'matrix', 'blank']; let currIdx = themes.indexOf(state.theme);
@@ -1024,16 +1041,13 @@
         const AdminCtrl = {
             tapCount: 0, tapTimeout: null,
             init: () => {
+                // PIN DIHAPUS: Tap langsung buka Admin Panel
                 DOM.trigger.addEventListener('click', () => {
                     AdminCtrl.tapCount++; clearTimeout(AdminCtrl.tapTimeout);
-                    if (AdminCtrl.tapCount >= 5) { DOM.pinModal.style.display = 'flex'; AdminCtrl.tapCount = 0; }
+                    if (AdminCtrl.tapCount >= 5) { DOM.adminPanel.style.display = 'flex'; AdminCtrl.tapCount = 0; AdminCtrl.syncUIToState(); }
                     AdminCtrl.tapTimeout = setTimeout(() => AdminCtrl.tapCount = 0, 3000);
                 });
-                DOM.btnCancelPin.addEventListener('click', () => { DOM.pinModal.style.display = 'none'; DOM.inPin.value=''; DOM.pinError.style.display='none';});
-                DOM.btnSubmitPin.addEventListener('click', () => {
-                    if(DOM.inPin.value === state.adminPin) { DOM.pinModal.style.display = 'none'; DOM.adminPanel.style.display = 'flex'; DOM.inPin.value=''; DOM.pinError.style.display='none'; AdminCtrl.syncUIToState(); } 
-                    else DOM.pinError.style.display = 'block';
-                });
+                
                 DOM.btnCloseAdmin.addEventListener('click', () => DOM.adminPanel.style.display = 'none');
 
                 // Sistem Tabs Elegan
@@ -1095,12 +1109,16 @@
                 DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; AudioCtrl.updateVolumes(); StorageCtrl.save(true); });
                 DOM.btnPlay.addEventListener('click', () => { AudioCtrl.play(); StorageCtrl.save(true); }); 
                 DOM.btnStop.addEventListener('click', () => { AudioCtrl.stop(); StorageCtrl.save(true); });
+                
+                // Clock Updates
                 DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
                 DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
                 DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
+                DOM.uiClockSize.addEventListener('input', e => { state.clockSize = e.target.value; document.getElementById('val-clock-size').innerText = e.target.value+'x'; TimeCtrl.update(); StorageCtrl.save(true); });
+                DOM.uiClockSeconds.addEventListener('change', e => { state.clockSeconds = e.target.checked; TimeCtrl.update(); StorageCtrl.save(true); });
+                
                 DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; LocationCtrl.fetchPrayer(); StorageCtrl.save(true); });
                 DOM.btnGeo.addEventListener('click', LocationCtrl.autoDetect);
-                DOM.btnChangePin.addEventListener('click', () => { const np = DOM.uiNewPin.value; if(np.length === 4) { state.adminPin = np; alert("PIN Updated!"); DOM.uiNewPin.value=''; StorageCtrl.save(true); } else alert("PIN harus 4 digit!"); });
                 DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
                 DOM.btnResetState.addEventListener('click', StorageCtrl.reset);
             },
@@ -1119,7 +1137,10 @@
                 DOM.uiMasterVol.value = state.masterVolume * 100; document.getElementById('val-master-vol').innerText = (state.masterVolume*100)+'%';
                 DOM.uiBabyName.value = state.babyName; DOM.uiBabyFont.value = state.babyFont; DOM.uiBabyColor.value = state.babyColor;
                 DOM.uiOverlayTxt.value = state.overlayText || ''; DOM.uiOverlayImg.value = state.overlayImg || '';
-                DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; DOM.uiPrayer.checked = state.showPrayer;
+                DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; 
+                DOM.uiClockSize.value = state.clockSize; document.getElementById('val-clock-size').innerText = state.clockSize+'x';
+                DOM.uiClockSeconds.checked = state.clockSeconds;
+                DOM.uiPrayer.checked = state.showPrayer;
             }
         };
 
