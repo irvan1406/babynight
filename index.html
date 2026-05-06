@@ -96,7 +96,7 @@
             bottom: -100%;
             width: 100%;
             line-height: 1.8;
-            font-family: "Amiri", "Traditional Arabic", serif; /* Font Arabic jika tersedia */
+            font-family: "Amiri", "Traditional Arabic", serif;
             animation: scrollQuran linear infinite;
         }
 
@@ -224,7 +224,7 @@
             75% { opacity: 1; }
         }
 
-        /* Performa Mode: matikan blur */
+        /* Performa Mode */
         .performance-mode .wave { filter: none; }
         .performance-mode .firefly { box-shadow: none; }
 
@@ -289,7 +289,6 @@
             cursor: pointer;
         }
 
-        /* Modal Overlay */
         .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -323,7 +322,6 @@
             outline: none;
         }
 
-        /* Admin Panel */
         #admin-panel {
             position: absolute;
             top: 50%;
@@ -343,7 +341,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
 
-        /* Custom Scrollbar */
         #admin-panel::-webkit-scrollbar { width: 8px; }
         #admin-panel::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px;}
         #admin-panel::-webkit-scrollbar-thumb { background: #4facfe; border-radius: 4px; }
@@ -387,7 +384,6 @@
         .btn-warning { background: #ffd700; color: #000; }
         .btn-success { background: #2ed573; color: #000; }
 
-        /* Value display for sliders */
         .slider-val { font-size: 0.8rem; color: #4facfe; float: right; font-weight: bold; }
     </style>
 </head>
@@ -437,7 +433,6 @@
         </div>
     </div>
 
-    <!-- AUDIO TAG FOR UPLOADED FILES -->
     <audio id="custom-audio-player" loop></audio>
 
     <!-- 5. PANEL ADMIN -->
@@ -447,7 +442,6 @@
             <button class="close-btn" id="btn-close-admin">×</button>
         </div>
 
-        <!-- Section 1: Presets & Smart Auto -->
         <div class="admin-section">
             <h3>🤖 Automations & Presets</h3>
             <div class="form-group checkbox-group">
@@ -478,7 +472,6 @@
             </div>
         </div>
 
-        <!-- NEW SECTION: ALARM SYSTEM -->
         <div class="admin-section">
             <h3>⏰ Alarm System</h3>
             <div class="form-group-flex">
@@ -496,7 +489,6 @@
             <button class="btn btn-danger" id="btn-stop-alarm" style="width:100%; display:none;">🔕 STOP ALARM BERBUNYI!</button>
         </div>
 
-        <!-- Section 2: Visual & Theme -->
         <div class="admin-section">
             <h3>🎨 Visual & Themes</h3>
             <div class="form-group">
@@ -526,7 +518,7 @@
                 <input type="range" id="set-brightness" min="0" max="95" value="0">
             </div>
             <div class="form-group">
-                <label>Jumlah Partikel (Bintang/Kunang) <span class="slider-val" id="val-particle">60</span></label>
+                <label>Jumlah Partikel <span class="slider-val" id="val-particle">60</span></label>
                 <input type="range" id="set-particle" min="10" max="200" value="60">
             </div>
             <div class="form-group">
@@ -535,14 +527,13 @@
             </div>
             <div class="form-group checkbox-group">
                 <input type="checkbox" id="set-performance">
-                <label for="set-performance">Performance Mode (Untuk TV/HP Low-end)</label>
+                <label for="set-performance">Performance Mode (TV/HP Low-end)</label>
             </div>
         </div>
 
-        <!-- NEW SECTION: YOUTUBE & QURAN -->
         <div class="admin-section">
             <h3>📖 Murottal YouTube & Al-Quran</h3>
-            <p style="font-size: 0.75rem; color: #ccc; margin-bottom: 10px;">Masukkan ID YouTube (misal: jMwW9uKk-5s). Pastikan koneksi internet aktif. Pilih Surat untuk menampilkan ayat.</p>
+            <p style="font-size: 0.75rem; color: #ccc; margin-bottom: 10px;">Masukkan ID YouTube. Pilih Surat untuk menampilkan ayat.</p>
             <div class="form-group">
                 <label>YouTube Video ID</label>
                 <div style="display:flex; gap:10px;">
@@ -560,7 +551,6 @@
             </div>
         </div>
 
-        <!-- Section 3: Advanced Audio Mixer -->
         <div class="admin-section">
             <h3>🎵 Audio Mixer & Upload</h3>
             <div class="form-group">
@@ -586,7 +576,7 @@
                 <input type="range" id="vol-heartbeat" min="0" max="100" value="80">
             </div>
             <div class="btn-group">
-                <button class="btn btn-primary" id="btn-play-audio">▶ Play Audio (All Source)</button>
+                <button class="btn btn-primary" id="btn-play-audio">▶ Play Audio</button>
                 <button class="btn btn-danger" id="btn-stop-audio">■ Stop All</button>
             </div>
             <div class="form-group" style="margin-top:15px;">
@@ -595,7 +585,6 @@
             </div>
         </div>
 
-        <!-- Section 4: Clock, Text & Prayer -->
         <div class="admin-section">
             <h3>🕰️ Display Elements</h3>
             <div class="form-group">
@@ -606,7 +595,6 @@
                 </div>
             </div>
             
-            <!-- NEW CLOCK FEATURES: FONT & COLOR -->
             <div class="form-group-flex">
                 <div style="flex:1;">
                     <label>Clock Mode</label>
@@ -639,7 +627,6 @@
             <button class="btn btn-warning" id="btn-geo" style="width:100%; margin-top:5px;">📍 Auto-Detect Location (GPS)</button>
         </div>
 
-        <!-- Section 5: System & Storage -->
         <div class="admin-section">
             <h3>💾 System Settings</h3>
             <div class="form-group">
@@ -657,17 +644,19 @@
     </div>
 
     <!-- ========================================================
-         6. JAVASCRIPT MODULAR LOGIC
+         6. JAVASCRIPT MODULAR LOGIC (DIPERBARUI KE REALTIME DATABASE)
          ======================================================== -->
     
-    <!-- MENGINISIALISASI FIREBASE SDK DAN FIRESTORE (SINKRONISASI REALTIME) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
+    <!-- MENGGUNAKAN FIREBASE DATABASE (REALTIME DATABASE) BUKAN FIRESTORE -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Inisialisasi Firebase Konfigurasi Anda (Ditambah URL Realtime Database generik)
         const firebaseConfig = {
           apiKey: "AIzaSyDLLyQ7jAfugtPoPYZrwDdkWTJ9q2VYSsQ",
           authDomain: "babynight-b1fcc.firebaseapp.com",
+          databaseURL: "https://babynight-b1fcc-default-rtdb.firebaseio.com", // Penting untuk Realtime DB!
           projectId: "babynight-b1fcc",
           storageBucket: "babynight-b1fcc.firebasestorage.app",
           messagingSenderId: "526473281843",
@@ -675,83 +664,46 @@
           measurementId: "G-4QSWTXVN37"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Expose Firebase Database ke Global Context agar bisa dipakai oleh fungsi di bawahnya
-        window.firebaseDb = db;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseOnSnapshot = onSnapshot;
-        
-        // Memicu event custom saat Firebase sudah siap dipakai
-        window.dispatchEvent(new Event('firebase-ready'));
-    </script>
+        // Mulai Mesin Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(); // Memanggil Realtime Database
 
-    <script>
         /**
          * BABY NIGHT PROJECTOR - ADVANCED MODULAR SYSTEM
          * By: Irvan-System (Zero Laziness Edition)
          */
 
-        // ==========================================
-        // 1. STATE & STORAGE MANAGEMENT
-        // ==========================================
         const defaultState = {
-            theme: 'night-sky',
-            clockType: 'digital',
-            clockFont: "'Segoe UI', Tahoma, sans-serif",
-            clockColor: '#ffffff',
-            showPrayer: true,
-            brightness: 0,
-            autoNightMode: false,
-            sleepTimer: 0,
-            adminPin: '1234',
-            particleCount: 60,
-            animSpeed: 1,
-            customBg1: '#020111',
-            customBg2: '#20124d',
-            customPColor: '#ffffff',
-            masterVolume: 0.3,
-            enWhiteNoise: false, volWhiteNoise: 0.5,
-            enOcean: false, volOcean: 0.5,
-            enHeartbeat: false, volHeartbeat: 0.8,
-            useCustomAudio: false,
-            ytVideoId: '',
-            quranSurah: '1',
-            showQuran: false,
-            alarmTime: '',
-            alarmActive: false,
-            lat: -6.2088, lng: 106.8456, // Default Jakarta
-            babyName: '',
-            performanceMode: false
+            theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
+            showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, adminPin: '1234',
+            particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
+            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5,
+            enHeartbeat: false, volHeartbeat: 0.8, useCustomAudio: false, ytVideoId: '', quranSurah: '1',
+            showQuran: false, alarmTime: '', alarmActive: false, lat: -6.2088, lng: 106.8456, babyName: '', performanceMode: false
         };
 
         let state = { ...defaultState };
 
         let firebaseSyncTimeout = null;
-        let firebaseErrorAlerted = false; // Mencegah spam popup error
+        let firebaseErrorAlerted = false;
 
         const StorageCtrl = {
             save: async (silent = true) => {
                 localStorage.setItem('babyProjectorState', JSON.stringify(state));
                 
-                // SINKRONISASI REAL-TIME KE FIREBASE FIRESTORE (DENGAN DEBOUNCE UNTUK MENCEGAH SPAM)
-                if (window.firebaseDb) {
+                // MENGGUNAKAN REALTIME DATABASE (Tidak terpengaruh masalah billing credit card)
+                if (typeof db !== 'undefined') {
                     clearTimeout(firebaseSyncTimeout);
                     
-                    // Menunggu 400ms setelah user berhenti menggeser slider/klik sebelum mengirim data
                     firebaseSyncTimeout = setTimeout(async () => {
                         try {
-                            const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
-                            await window.firebaseSetDoc(docRef, state);
-                            console.log("Berhasil mensinkronkan data ke Cloud Firestore!");
+                            await db.ref("baby_night_settings/global_state").set(state);
+                            console.log("Sinkronisasi Realtime Sukses!");
                         } catch (e) {
-                            console.error("Gagal sync ke Firebase:", e);
+                            console.error("Gagal sync ke Realtime Database:", e);
                             if (!firebaseErrorAlerted) {
-                                alert("KONEKSI FIREBASE DITOLAK!\n\nPesan Error: " + e.message + "\n\nSOLUSI (Buka di Laptop/PC):\n1. Buka Firebase Console.\n2. Masuk ke menu 'Firestore Database'.\n3. Klik tab 'Rules' (Aturan).\n4. Ubah baris aturan menjadi:\n   allow read, write: if true;\n5. Klik Publish/Terbitkan.");
-                                firebaseErrorAlerted = true; // Hanya alert 1 kali agar tidak mengganggu
+                                alert("FIREBASE DITOLAK!\n\nPastikan Anda sudah mengklik 'Create Database' di menu REALTIME DATABASE dan mengubah Rules menjadi true (Lihat instruksi di chat).");
+                                firebaseErrorAlerted = true;
                             }
                         }
                     }, 400); 
@@ -759,45 +711,43 @@
 
                 if (!silent) alert("Pengaturan Tersimpan di LocalStorage & Firebase!");
             },
+            
             load: () => {
                 const saved = localStorage.getItem('babyProjectorState');
-                if (saved) {
-                    state = { ...defaultState, ...JSON.parse(saved) };
-                }
+                if (saved) Object.assign(state, defaultState, JSON.parse(saved));
             },
-            // Fungsi MENDENGARKAN perubahan dari HP atau Proyektor
+            
+            // FUNGSI MENDENGARKAN DARI REALTIME DATABASE
             listenFirebase: () => {
-                if (window.firebaseDb) {
-                    const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
-                    
-                    // onSnapshot akan langsung memicu kode ini setiap kali ada HP/Laptop yang mengubah database
-                    window.firebaseOnSnapshot(docRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            console.log("Menerima pembaruan sinkronisasi otomatis dari perangkat lain!");
-                            const data = docSnap.data();
-                            state = { ...state, ...data }; // Gabungkan state baru
+                if (typeof db !== 'undefined') {
+                    db.ref("baby_night_settings/global_state").on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            console.log("Menerima data dari HP/Laptop lain!");
+                            Object.assign(state, data); 
                             
-                            // Re-render UI secara otomatis begitu ada perubahan di database
                             AdminCtrl.syncUIToState();
                             ThemeCtrl.render();
                             TimeCtrl.update();
                             AudioCtrl.updateVolumes();
+                            
                             if(state.showQuran) QuranCtrl.fetchAndRender();
                             else document.getElementById('quran-layer').innerHTML = '';
                         }
                     }, (error) => {
                         console.error("Error Listener Firebase:", error);
                         if (!firebaseErrorAlerted) {
-                            alert("FIREBASE LISTENER TERPUTUS!\n\nPesan Error: " + error.message + "\n\nPastikan Rules Firestore Anda sudah di-set 'allow read, write: if true;'.");
+                            alert("FIREBASE LISTENER TERPUTUS! Pastikan Rules Realtime Database diizinkan baca/tulis.");
                             firebaseErrorAlerted = true;
                         }
                     });
                 }
             },
+            
             reset: () => {
                 if(confirm("Reset semua pengaturan ke default?")) {
                     localStorage.removeItem('babyProjectorState');
-                    state = { ...defaultState };
+                    Object.assign(state, defaultState);
                     StorageCtrl.save(true);
                     location.reload(); 
                 }
@@ -810,23 +760,15 @@
             calm: { theme: 'ocean', brightness: 40, enWhiteNoise: false, enOcean: true, enHeartbeat: false, masterVolume: 0.3, particleCount: 0 }
         };
 
-        // ==========================================
-        // YOUTUBE IFRAME API INITIALIZATION
-        // ==========================================
-        let ytPlayerReady = false;
-        let ytPlayer = null;
-        
+        let ytPlayerReady = false; let ytPlayer = null;
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('youtube-player', {
-                height: '0', width: '0',
-                videoId: state.ytVideoId,
+                height: '0', width: '0', videoId: state.ytVideoId,
                 playerVars: { 'playsinline': 1, 'loop': 1, 'playlist': state.ytVideoId },
-                events: {
-                    'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); }
-                }
+                events: { 'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); } }
             });
         }
-        window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady; // Wajib expose ke global agar dipanggil API YT
+        window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
         function loadYouTubeScript() {
             let tag = document.createElement('script');
@@ -835,19 +777,11 @@
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         }
 
-        // ==========================================
-        // QURAN API CONTROLLER
-        // ==========================================
         const QuranCtrl = {
             fetchAndRender: async () => {
                 const layer = document.getElementById('quran-layer');
-                if (!state.showQuran) {
-                    layer.innerHTML = '';
-                    return;
-                }
-                
+                if (!state.showQuran) { layer.innerHTML = ''; return; }
                 layer.innerHTML = '<div style="font-size:1rem; opacity:0.5;">Memuat Teks Al-Quran...</div>';
-                
                 try {
                     const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
                     const data = await res.json();
@@ -856,24 +790,15 @@
                         const animDuration = Math.max(30, data.data.ayahs.length * 3); 
                         layer.innerHTML = `<div id="quran-scroll" style="animation-duration: ${animDuration}s">${data.data.name} <br><br> ${ayahs}</div>`;
                     }
-                } catch (e) {
-                    layer.innerHTML = '<div style="font-size:1rem; color:red;">Gagal memuat teks Al-Quran. Cek koneksi.</div>';
-                }
+                } catch (e) { layer.innerHTML = '<div style="font-size:1rem; color:red;">Gagal memuat teks Al-Quran. Cek koneksi.</div>'; }
             }
         };
 
-        // ==========================================
-        // ALARM CONTROLLER
-        // ==========================================
         const AlarmCtrl = {
-            isRinging: false,
-            ctx: null,
-            osc: null,
-            
+            isRinging: false, ctx: null, osc: null,
             trigger: () => {
                 if(AlarmCtrl.isRinging) return;
                 AlarmCtrl.isRinging = true;
-                
                 document.getElementById('brightness-overlay').classList.add('alarm-flash');
                 document.getElementById('btn-stop-alarm').style.display = 'block';
 
@@ -882,238 +807,128 @@
 
                 AlarmCtrl.osc = AlarmCtrl.ctx.createOscillator();
                 const gain = AlarmCtrl.ctx.createGain();
-                
-                AlarmCtrl.osc.type = 'square';
-                AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); 
+                AlarmCtrl.osc.type = 'square'; AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); 
                 
                 const lfo = AlarmCtrl.ctx.createOscillator();
-                lfo.type = 'square';
-                lfo.frequency.value = 4; 
-                lfo.connect(gain.gain);
-                lfo.start();
+                lfo.type = 'square'; lfo.frequency.value = 4; lfo.connect(gain.gain); lfo.start();
 
-                AlarmCtrl.osc.connect(gain);
-                gain.connect(AlarmCtrl.ctx.destination);
-                AlarmCtrl.osc.start();
+                AlarmCtrl.osc.connect(gain); gain.connect(AlarmCtrl.ctx.destination); AlarmCtrl.osc.start();
             },
-
             stop: () => {
                 AlarmCtrl.isRinging = false;
                 document.getElementById('brightness-overlay').classList.remove('alarm-flash');
                 document.getElementById('btn-stop-alarm').style.display = 'none';
-                
-                if(AlarmCtrl.osc) {
-                    try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){}
-                }
-                state.alarmActive = false;
-                document.getElementById('set-alarm-active').checked = false;
-                StorageCtrl.save(true);
+                if(AlarmCtrl.osc) { try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){} }
+                state.alarmActive = false; document.getElementById('set-alarm-active').checked = false; StorageCtrl.save(true);
             }
         };
 
-        // ==========================================
-        // 2. DOM ELEMENTS
-        // ==========================================
         const DOM = {
-            trigger: document.getElementById('secret-trigger'),
-            pinModal: document.getElementById('pin-modal'),
-            inPin: document.getElementById('input-pin'),
-            btnSubmitPin: document.getElementById('btn-submit-pin'),
-            btnCancelPin: document.getElementById('btn-cancel-pin'),
-            pinError: document.getElementById('pin-error'),
-            adminPanel: document.getElementById('admin-panel'),
-            btnCloseAdmin: document.getElementById('btn-close-admin'),
-            
-            layerTheme: document.getElementById('theme-layer'),
-            layerClockArea: document.getElementById('clock-render-area'),
-            layerDate: document.getElementById('date-display'),
-            layerPrayer: document.getElementById('prayer-layer'),
-            layerOverlay: document.getElementById('brightness-overlay'),
-            layerBabyName: document.getElementById('baby-name-layer'),
-            sleepTimerDisp: document.getElementById('sleep-timer-display'),
-            customAudioPlayer: document.getElementById('custom-audio-player'),
-
-            uiAutoNight: document.getElementById('set-auto-night'),
-            uiPreset: document.getElementById('set-preset'),
-            btnApplyPreset: document.getElementById('btn-apply-preset'),
-            uiSleepTimer: document.getElementById('set-sleep-timer'),
-            
-            uiAlarmTime: document.getElementById('set-alarm-time'),
-            uiAlarmActive: document.getElementById('set-alarm-active'),
-            btnStopAlarm: document.getElementById('btn-stop-alarm'),
-
-            uiTheme: document.getElementById('set-theme'),
-            uiCustomEditor: document.getElementById('custom-theme-editor'),
-            uiBg1: document.getElementById('set-bg1'),
-            uiBg2: document.getElementById('set-bg2'),
-            uiPColor: document.getElementById('set-pcolor'),
-            uiBrightness: document.getElementById('set-brightness'),
-            uiParticle: document.getElementById('set-particle'),
-            uiSpeed: document.getElementById('set-speed'),
-            uiPerf: document.getElementById('set-performance'),
-            
-            uiYtId: document.getElementById('set-yt-id'),
-            btnLoadYt: document.getElementById('btn-load-yt'),
-            uiQuranSurah: document.getElementById('set-quran-surah'),
-            uiShowQuran: document.getElementById('set-show-quran'),
-
-            uiCustomAudioFile: document.getElementById('set-custom-audio'),
-            txtCustomAudioName: document.getElementById('custom-audio-name'),
+            trigger: document.getElementById('secret-trigger'), pinModal: document.getElementById('pin-modal'),
+            inPin: document.getElementById('input-pin'), btnSubmitPin: document.getElementById('btn-submit-pin'),
+            btnCancelPin: document.getElementById('btn-cancel-pin'), pinError: document.getElementById('pin-error'),
+            adminPanel: document.getElementById('admin-panel'), btnCloseAdmin: document.getElementById('btn-close-admin'),
+            layerTheme: document.getElementById('theme-layer'), layerClockArea: document.getElementById('clock-render-area'),
+            layerDate: document.getElementById('date-display'), layerPrayer: document.getElementById('prayer-layer'),
+            layerOverlay: document.getElementById('brightness-overlay'), layerBabyName: document.getElementById('baby-name-layer'),
+            sleepTimerDisp: document.getElementById('sleep-timer-display'), customAudioPlayer: document.getElementById('custom-audio-player'),
+            uiAutoNight: document.getElementById('set-auto-night'), uiPreset: document.getElementById('set-preset'),
+            btnApplyPreset: document.getElementById('btn-apply-preset'), uiSleepTimer: document.getElementById('set-sleep-timer'),
+            uiAlarmTime: document.getElementById('set-alarm-time'), uiAlarmActive: document.getElementById('set-alarm-active'),
+            btnStopAlarm: document.getElementById('btn-stop-alarm'), uiTheme: document.getElementById('set-theme'),
+            uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'),
+            uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'),
+            uiBrightness: document.getElementById('set-brightness'), uiParticle: document.getElementById('set-particle'),
+            uiSpeed: document.getElementById('set-speed'), uiPerf: document.getElementById('set-performance'),
+            uiYtId: document.getElementById('set-yt-id'), btnLoadYt: document.getElementById('btn-load-yt'),
+            uiQuranSurah: document.getElementById('set-quran-surah'), uiShowQuran: document.getElementById('set-show-quran'),
+            uiCustomAudioFile: document.getElementById('set-custom-audio'), txtCustomAudioName: document.getElementById('custom-audio-name'),
             tglWN: document.getElementById('tgl-whitenoise'), volWN: document.getElementById('vol-whitenoise'),
             tglOc: document.getElementById('tgl-ocean'), volOc: document.getElementById('vol-ocean'),
             tglHb: document.getElementById('tgl-heartbeat'), volHb: document.getElementById('vol-heartbeat'),
-            uiMasterVol: document.getElementById('set-master-volume'),
-            btnPlay: document.getElementById('btn-play-audio'),
-            btnStop: document.getElementById('btn-stop-audio'),
-
-            uiBabyName: document.getElementById('set-baby-name'),
-            btnSaveName: document.getElementById('btn-save-name'),
-            uiClock: document.getElementById('set-clock'),
-            uiClockColor: document.getElementById('set-clock-color'),
-            uiClockFont: document.getElementById('set-clock-font'),
-            uiPrayer: document.getElementById('set-prayer'),
-            btnGeo: document.getElementById('btn-geo'),
-
-            uiNewPin: document.getElementById('set-new-pin'),
-            btnChangePin: document.getElementById('btn-change-pin'),
-            btnSaveState: document.getElementById('btn-save-state'),
-            btnResetState: document.getElementById('btn-reset-state')
+            uiMasterVol: document.getElementById('set-master-volume'), btnPlay: document.getElementById('btn-play-audio'),
+            btnStop: document.getElementById('btn-stop-audio'), uiBabyName: document.getElementById('set-baby-name'),
+            btnSaveName: document.getElementById('btn-save-name'), uiClock: document.getElementById('set-clock'),
+            uiClockColor: document.getElementById('set-clock-color'), uiClockFont: document.getElementById('set-clock-font'),
+            uiPrayer: document.getElementById('set-prayer'), btnGeo: document.getElementById('btn-geo'),
+            uiNewPin: document.getElementById('set-new-pin'), btnChangePin: document.getElementById('btn-change-pin'),
+            btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state')
         };
 
-        // ==========================================
-        // 3. THEME & VISUAL CONTROLLER
-        // ==========================================
         const ThemeCtrl = {
             render: () => {
-                DOM.layerTheme.innerHTML = '';
-                DOM.layerTheme.className = '';
-                
-                if(state.performanceMode) document.body.classList.add('performance-mode');
-                else document.body.classList.remove('performance-mode');
+                DOM.layerTheme.innerHTML = ''; DOM.layerTheme.className = '';
+                if(state.performanceMode) document.body.classList.add('performance-mode'); else document.body.classList.remove('performance-mode');
 
-                if (state.theme === 'custom') {
-                    DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
-                } else {
-                    DOM.layerTheme.style.background = '';
-                    DOM.layerTheme.className = `theme-${state.theme}`;
-                }
+                if (state.theme === 'custom') DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
+                else { DOM.layerTheme.style.background = ''; DOM.layerTheme.className = `theme-${state.theme}`; }
 
                 const count = state.performanceMode ? Math.floor(state.particleCount / 2) : state.particleCount;
                 const speedMulti = 1 / state.animSpeed; 
 
                 if (state.theme === 'night-sky' || state.theme === 'custom') {
                     for (let i = 0; i < count; i++) {
-                        const star = document.createElement('div');
-                        star.className = 'star';
-                        star.style.width = Math.random() * 3 + 'px';
-                        star.style.height = star.style.width;
-                        star.style.left = Math.random() * 100 + 'vw';
-                        star.style.top = Math.random() * 100 + 'vh';
+                        const star = document.createElement('div'); star.className = 'star';
+                        star.style.width = Math.random() * 3 + 'px'; star.style.height = star.style.width;
+                        star.style.left = Math.random() * 100 + 'vw'; star.style.top = Math.random() * 100 + 'vh';
                         star.style.animationDuration = ((Math.random() * 3 + 2) * speedMulti) + 's';
                         star.style.animationDelay = Math.random() * 2 + 's';
-                        if(state.theme === 'custom') {
-                            star.style.background = state.customPColor;
-                            star.style.boxShadow = `0 0 10px ${state.customPColor}`;
-                        }
+                        if(state.theme === 'custom') { star.style.background = state.customPColor; star.style.boxShadow = `0 0 10px ${state.customPColor}`; }
                         DOM.layerTheme.appendChild(star);
                     }
                 } else if (state.theme === 'ocean') {
-                    const wave1 = document.createElement('div'); wave1.className = 'wave';
-                    wave1.style.animationDuration = (10 * speedMulti) + 's';
-                    const wave2 = document.createElement('div'); wave2.className = 'wave';
-                    wave2.style.animationDuration = (15 * speedMulti) + 's';
-                    DOM.layerTheme.appendChild(wave1);
-                    DOM.layerTheme.appendChild(wave2);
+                    const wave1 = document.createElement('div'); wave1.className = 'wave'; wave1.style.animationDuration = (10 * speedMulti) + 's';
+                    const wave2 = document.createElement('div'); wave2.className = 'wave'; wave2.style.animationDuration = (15 * speedMulti) + 's';
+                    DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 } else if (state.theme === 'forest') {
                     for (let i = 0; i < count/2; i++) {
-                        const firefly = document.createElement('div');
-                        firefly.className = 'firefly';
-                        firefly.style.width = '4px'; firefly.style.height = '4px';
-                        firefly.style.background = '#ccff00';
+                        const firefly = document.createElement('div'); firefly.className = 'firefly';
+                        firefly.style.width = '4px'; firefly.style.height = '4px'; firefly.style.background = '#ccff00';
                         firefly.style.boxShadow = state.performanceMode ? 'none' : '0 0 10px 2px #ccff00';
-                        firefly.style.left = Math.random() * 100 + 'vw';
-                        firefly.style.top = Math.random() * 100 + 'vh';
+                        firefly.style.left = Math.random() * 100 + 'vw'; firefly.style.top = Math.random() * 100 + 'vh';
                         firefly.style.animationDuration = ((Math.random() * 5 + 5) * speedMulti) + 's';
                         firefly.style.animationDelay = Math.random() * 5 + 's';
                         DOM.layerTheme.appendChild(firefly);
                     }
                 }
 
-                if(state.babyName.trim() !== '') {
-                    DOM.layerBabyName.style.display = 'block';
-                    DOM.layerBabyName.innerText = state.babyName;
-                } else {
-                    DOM.layerBabyName.style.display = 'none';
-                }
+                if(state.babyName.trim() !== '') { DOM.layerBabyName.style.display = 'block'; DOM.layerBabyName.innerText = state.babyName; } 
+                else DOM.layerBabyName.style.display = 'none';
 
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
             }
         };
 
-        // ==========================================
-        // 4. TIME, CLOCK, SLEEP TIMER & SMART AUTO
-        // ==========================================
         const TimeCtrl = {
-            timerEndTime: null,
-            timerOriginalBrightness: 0,
-            isNightModeTriggered: false,
-
-            init: () => {
-                TimeCtrl.update();
-                setInterval(TimeCtrl.update, 1000);
-            },
-            
+            timerEndTime: null, timerOriginalBrightness: 0, isNightModeTriggered: false,
+            init: () => { TimeCtrl.update(); setInterval(TimeCtrl.update, 1000); },
             startSleepTimer: (minutes) => {
-                if(minutes == 0) {
-                    TimeCtrl.timerEndTime = null;
-                    DOM.sleepTimerDisp.style.display = 'none';
-                    return;
-                }
-                TimeCtrl.timerOriginalBrightness = state.brightness;
-                TimeCtrl.timerEndTime = new Date().getTime() + (minutes * 60000);
+                if(minutes == 0) { TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none'; return; }
+                TimeCtrl.timerOriginalBrightness = state.brightness; TimeCtrl.timerEndTime = new Date().getTime() + (minutes * 60000);
                 DOM.sleepTimerDisp.style.display = 'block';
             },
-
             update: () => {
                 const now = new Date();
-                
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 DOM.layerDate.innerText = now.toLocaleDateString('id-ID', options);
 
-                const hr = now.getHours();
-                const min = now.getMinutes();
-                const sec = now.getSeconds();
+                const hr = now.getHours(); const min = now.getMinutes(); const sec = now.getSeconds();
 
                 if (state.clockType === 'digital') {
-                    const hStr = String(hr).padStart(2, '0');
-                    const mStr = String(min).padStart(2, '0');
-                    const sStr = String(sec).padStart(2, '0');
-                    DOM.layerClockArea.innerHTML = `
-                        <div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor};">
-                            ${hStr}:${mStr}:${sStr}
-                        </div>`;
+                    const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0'); const sStr = String(sec).padStart(2, '0');
+                    DOM.layerClockArea.innerHTML = `<div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor};">${hStr}:${mStr}:${sStr}</div>`;
                 } else if (state.clockType === 'analog') {
-                    const sD = (sec / 60) * 360; 
-                    const mD = (min / 60) * 360 + (sec / 60) * 6; 
-                    const hD = (hr / 12) * 360 + (min / 60) * 30;
-                    DOM.layerClockArea.innerHTML = `
-                        <div class="clock-analog" style="border-color: ${state.clockColor};">
-                            <div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div>
-                            <div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div>
-                            <div class="hand hand-second" style="transform: translateX(-50%) rotate(${sD}deg)"></div>
-                            <div class="analog-center"></div>
-                        </div>
-                    `;
-                } else {
-                    DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = '';
-                }
+                    const sD = (sec / 60) * 360; const mD = (min / 60) * 360 + (sec / 60) * 6; const hD = (hr / 12) * 360 + (min / 60) * 30;
+                    DOM.layerClockArea.innerHTML = `<div class="clock-analog" style="border-color: ${state.clockColor};">
+                        <div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div>
+                        <div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div>
+                        <div class="hand hand-second" style="transform: translateX(-50%) rotate(${sD}deg)"></div>
+                        <div class="analog-center"></div></div>`;
+                } else { DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = ''; }
 
                 if (state.alarmActive && state.alarmTime !== '') {
-                    const hStr = String(hr).padStart(2, '0');
-                    const mStr = String(min).padStart(2, '0');
-                    if (state.alarmTime === `${hStr}:${mStr}` && sec === 0) {
-                        AlarmCtrl.trigger();
-                    }
+                    const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0');
+                    if (state.alarmTime === `${hStr}:${mStr}` && sec === 0) AlarmCtrl.trigger();
                 }
 
                 if (state.autoNightMode) {
@@ -1121,26 +936,22 @@
                     if (isNight && !TimeCtrl.isNightModeTriggered) {
                         TimeCtrl.isNightModeTriggered = true;
                         Object.assign(state, {theme: 'night-sky', brightness: 40, enWhiteNoise: true, masterVolume: 0.2});
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play();
+                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play(); StorageCtrl.save(true);
                     } else if (!isNight && TimeCtrl.isNightModeTriggered) {
                         TimeCtrl.isNightModeTriggered = false;
                         Object.assign(state, {brightness: 0, enWhiteNoise: false});
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop();
+                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop(); StorageCtrl.save(true);
                     }
                 }
 
                 if (TimeCtrl.timerEndTime) {
                     const diff = TimeCtrl.timerEndTime - now.getTime();
                     if (diff <= 0) {
-                        TimeCtrl.timerEndTime = null;
-                        DOM.sleepTimerDisp.style.display = 'none';
-                        state.brightness = 95; 
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop();
+                        TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none'; state.brightness = 95; 
+                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop(); StorageCtrl.save(true);
                     } else {
-                        const totalDur = DOM.uiSleepTimer.value * 60000;
-                        const progress = 1 - (diff / totalDur);
-                        const m = Math.floor(diff / 60000);
-                        const s = Math.floor((diff % 60000) / 1000);
+                        const totalDur = DOM.uiSleepTimer.value * 60000; const progress = 1 - (diff / totalDur);
+                        const m = Math.floor(diff / 60000); const s = Math.floor((diff % 60000) / 1000);
                         DOM.sleepTimerDisp.innerText = `Sleep in: ${m}m ${s}s`;
                         const targetBrightness = TimeCtrl.timerOriginalBrightness + ( (90 - TimeCtrl.timerOriginalBrightness) * progress );
                         DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${targetBrightness / 100})`;
@@ -1149,297 +960,129 @@
             }
         };
 
-        // ==========================================
-        // 5. ADVANCED AUDIO ENGINE (Multi-layer Synth + YT)
-        // ==========================================
         const AudioCtrl = {
-            ctx: null,
-            masterGain: null,
-            nodes: {}, 
-            heartbeatInterval: null,
-
+            ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
             initCtx: () => {
-                if (!AudioCtrl.ctx) {
-                    AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    AudioCtrl.masterGain = AudioCtrl.ctx.createGain();
-                    AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination);
-                }
+                if (!AudioCtrl.ctx) { AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)(); AudioCtrl.masterGain = AudioCtrl.ctx.createGain(); AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination); }
             },
-
             createWhiteNoise: () => {
-                const bufferSize = AudioCtrl.ctx.sampleRate * 2;
-                const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
-                const output = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-                const noise = AudioCtrl.ctx.createBufferSource();
-                noise.buffer = buffer; noise.loop = true;
-                const filter = AudioCtrl.ctx.createBiquadFilter();
-                filter.type = 'lowpass'; filter.frequency.value = 600;
-                noise.connect(filter);
+                const bufferSize = AudioCtrl.ctx.sampleRate * 2; const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
+                const output = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                const noise = AudioCtrl.ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+                const filter = AudioCtrl.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; noise.connect(filter);
                 return { src: noise, out: filter };
             },
-
             createOcean: () => {
-                const wn = AudioCtrl.createWhiteNoise();
-                wn.out.frequency.value = 300; 
-                const lfo = AudioCtrl.ctx.createOscillator();
-                lfo.type = 'sine'; lfo.frequency.value = 0.08; 
-                const lfoGain = AudioCtrl.ctx.createGain();
-                lfo.connect(lfoGain.gain);
-                wn.out.connect(lfoGain);
-                lfo.start();
+                const wn = AudioCtrl.createWhiteNoise(); wn.out.frequency.value = 300; 
+                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.08; 
+                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
                 return { src: wn.src, out: lfoGain, extra: lfo };
             },
-
             startHeartbeat: (gainNode) => {
                 AudioCtrl.heartbeatInterval = setInterval(() => {
                     if(AudioCtrl.ctx.state !== 'running') return;
-                    const osc = AudioCtrl.ctx.createOscillator();
-                    const env = AudioCtrl.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
-                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime);
-                    env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1);
-                    env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); 
-                    env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4);
-                    env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
-                    osc.connect(env);
-                    env.connect(gainNode);
-                    osc.start(AudioCtrl.ctx.currentTime);
-                    osc.stop(AudioCtrl.ctx.currentTime + 0.7);
+                    const osc = AudioCtrl.ctx.createOscillator(); const env = AudioCtrl.ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
+                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
+                    osc.connect(env); env.connect(gainNode); osc.start(AudioCtrl.ctx.currentTime); osc.stop(AudioCtrl.ctx.currentTime + 0.7);
                 }, 1200); 
             },
-
             play: () => {
                 AudioCtrl.stop(); 
-                
-                if (state.useCustomAudio && DOM.customAudioPlayer.src) {
-                    DOM.customAudioPlayer.volume = state.masterVolume;
-                    DOM.customAudioPlayer.play().catch(e=>console.log("Audio play blocked by browser"));
-                }
-
-                if (ytPlayerReady && ytPlayer && state.ytVideoId) {
-                    ytPlayer.setVolume(state.masterVolume * 100);
-                    ytPlayer.playVideo();
-                }
-
-                AudioCtrl.initCtx();
-                if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
+                if (state.useCustomAudio && DOM.customAudioPlayer.src) { DOM.customAudioPlayer.volume = state.masterVolume; DOM.customAudioPlayer.play().catch(e=>console.log("Audio play blocked by browser")); }
+                if (ytPlayerReady && ytPlayer && state.ytVideoId) { ytPlayer.setVolume(state.masterVolume * 100); ytPlayer.playVideo(); }
+                AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
                 AudioCtrl.masterGain.gain.value = state.masterVolume;
-
-                if (state.enWhiteNoise) {
-                    const wn = AudioCtrl.createWhiteNoise();
-                    const vol = AudioCtrl.ctx.createGain();
-                    vol.gain.value = state.volWhiteNoise;
-                    wn.out.connect(vol).connect(AudioCtrl.masterGain);
-                    wn.src.start();
-                    AudioCtrl.nodes['wn'] = wn.src;
-                }
-                
-                if (state.enOcean) {
-                    const oc = AudioCtrl.createOcean();
-                    const vol = AudioCtrl.ctx.createGain();
-                    vol.gain.value = state.volOcean;
-                    oc.out.connect(vol).connect(AudioCtrl.masterGain);
-                    oc.src.start();
-                    AudioCtrl.nodes['oc'] = oc.src;
-                }
-
-                if (state.enHeartbeat) {
-                    const vol = AudioCtrl.ctx.createGain();
-                    vol.gain.value = state.volHeartbeat;
-                    vol.connect(AudioCtrl.masterGain);
-                    AudioCtrl.startHeartbeat(vol);
-                }
+                if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
+                if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
+                if (state.enHeartbeat) { const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volHeartbeat; vol.connect(AudioCtrl.masterGain); AudioCtrl.startHeartbeat(vol); }
             },
-
             stop: () => {
                 DOM.customAudioPlayer.pause();
-                if (ytPlayerReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-                    ytPlayer.pauseVideo();
-                }
-                
-                Object.values(AudioCtrl.nodes).forEach(src => {
-                    try { src.stop(); src.disconnect(); } catch(e){}
-                });
-                AudioCtrl.nodes = {};
-                clearInterval(AudioCtrl.heartbeatInterval);
+                if (ytPlayerReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+                Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} });
+                AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval);
             },
-
             updateVolumes: () => {
-                if(AudioCtrl.masterGain) {
-                    AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
-                }
+                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
                 if(DOM.customAudioPlayer) DOM.customAudioPlayer.volume = state.masterVolume;
-                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') {
-                    ytPlayer.setVolume(state.masterVolume * 100);
-                }
+                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
             }
         };
 
-        // ==========================================
-        // 6. LOCATION & PRAYER TIMES (Aladhan)
-        // ==========================================
         const LocationCtrl = {
             fetchPrayer: async () => {
                 if (!state.showPrayer) { DOM.layerPrayer.style.opacity = 0; return; }
                 DOM.layerPrayer.style.opacity = 1;
                 try {
                     const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${state.lat}&longitude=${state.lng}&method=11`);
-                    const data = await res.json();
-                    const t = data.data.timings;
-                    document.getElementById('pray-Fajr').innerText = t.Fajr;
-                    document.getElementById('pray-Dhuhr').innerText = t.Dhuhr;
-                    document.getElementById('pray-Asr').innerText = t.Asr;
-                    document.getElementById('pray-Maghrib').innerText = t.Maghrib;
-                    document.getElementById('pray-Isha').innerText = t.Isha;
+                    const data = await res.json(); const t = data.data.timings;
+                    document.getElementById('pray-Fajr').innerText = t.Fajr; document.getElementById('pray-Dhuhr').innerText = t.Dhuhr; document.getElementById('pray-Asr').innerText = t.Asr; document.getElementById('pray-Maghrib').innerText = t.Maghrib; document.getElementById('pray-Isha').innerText = t.Isha;
                 } catch (e) { console.error("API Sholat error"); }
             },
             autoDetect: () => {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            state.lat = pos.coords.latitude; state.lng = pos.coords.longitude;
-                            alert(`Lokasi Ditemukan! Lat: ${state.lat.toFixed(2)}, Lng: ${state.lng.toFixed(2)}`);
-                            LocationCtrl.fetchPrayer();
-                            StorageCtrl.save(true); // Auto Save Lokasi
-                        },
+                        (pos) => { state.lat = pos.coords.latitude; state.lng = pos.coords.longitude; alert(`Lokasi Ditemukan! Lat: ${state.lat.toFixed(2)}, Lng: ${state.lng.toFixed(2)}`); LocationCtrl.fetchPrayer(); StorageCtrl.save(true); },
                         (err) => alert("Gagal akses lokasi. Gunakan koneksi HTTPS/Izinkan browser.")
                     );
                 } else alert("Geolocation tidak didukung");
             }
         };
 
-        // ==========================================
-        // 7. GESTURE & FULLSCREEN CONTROLS
-        // ==========================================
         const GestureCtrl = {
             touchStartX: 0, lastTap: 0,
             init: () => {
                 window.addEventListener('touchstart', e => GestureCtrl.touchStartX = e.changedTouches[0].screenX);
                 window.addEventListener('touchend', e => {
-                    const endX = e.changedTouches[0].screenX;
-                    const diff = endX - GestureCtrl.touchStartX;
-                    
+                    const endX = e.changedTouches[0].screenX; const diff = endX - GestureCtrl.touchStartX;
                     if (Math.abs(diff) > 100) {
-                        const themes = ['night-sky', 'ocean', 'forest', 'blank'];
-                        let currIdx = themes.indexOf(state.theme);
-                        if(diff > 0) currIdx = (currIdx - 1 + themes.length) % themes.length; 
-                        else currIdx = (currIdx + 1) % themes.length; 
-                        state.theme = themes[currIdx];
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render();
-                        StorageCtrl.save(true); // Auto Save setelah Swipe
+                        const themes = ['night-sky', 'ocean', 'forest', 'blank']; let currIdx = themes.indexOf(state.theme);
+                        if(diff > 0) currIdx = (currIdx - 1 + themes.length) % themes.length; else currIdx = (currIdx + 1) % themes.length; 
+                        state.theme = themes[currIdx]; AdminCtrl.syncUIToState(); ThemeCtrl.render(); StorageCtrl.save(true);
                     }
-
                     const now = new Date().getTime();
                     if(now - GestureCtrl.lastTap < 300 && Math.abs(diff) < 20) {
-                        if(Object.keys(AudioCtrl.nodes).length > 0 || !DOM.customAudioPlayer.paused) AudioCtrl.stop();
-                        else AudioCtrl.play();
+                        if(Object.keys(AudioCtrl.nodes).length > 0 || !DOM.customAudioPlayer.paused) AudioCtrl.stop(); else AudioCtrl.play();
                     }
                     GestureCtrl.lastTap = now;
                 });
-
-                const goFullscreen = () => {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch(()=>{});
-                    }
-                    window.removeEventListener('click', goFullscreen);
-                };
+                const goFullscreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(()=>{}); } window.removeEventListener('click', goFullscreen); };
                 window.addEventListener('click', goFullscreen);
             }
         };
 
-        // ==========================================
-        // 8. ADMIN UI & BINDINGS (Dengan Auto-Sync Ke Firestore)
-        // ==========================================
         const AdminCtrl = {
             tapCount: 0, tapTimeout: null,
-            
             init: () => {
                 DOM.trigger.addEventListener('click', () => {
-                    AdminCtrl.tapCount++;
-                    clearTimeout(AdminCtrl.tapTimeout);
-                    if (AdminCtrl.tapCount >= 5) {
-                        DOM.pinModal.style.display = 'flex';
-                        AdminCtrl.tapCount = 0;
-                    }
+                    AdminCtrl.tapCount++; clearTimeout(AdminCtrl.tapTimeout);
+                    if (AdminCtrl.tapCount >= 5) { DOM.pinModal.style.display = 'flex'; AdminCtrl.tapCount = 0; }
                     AdminCtrl.tapTimeout = setTimeout(() => AdminCtrl.tapCount = 0, 3000);
                 });
-
                 DOM.btnCancelPin.addEventListener('click', () => { DOM.pinModal.style.display = 'none'; DOM.inPin.value=''; DOM.pinError.style.display='none';});
                 DOM.btnSubmitPin.addEventListener('click', () => {
-                    if(DOM.inPin.value === state.adminPin) {
-                        DOM.pinModal.style.display = 'none';
-                        DOM.adminPanel.style.display = 'block';
-                        DOM.inPin.value=''; DOM.pinError.style.display='none';
-                        AdminCtrl.syncUIToState();
-                    } else {
-                        DOM.pinError.style.display = 'block';
-                    }
+                    if(DOM.inPin.value === state.adminPin) { DOM.pinModal.style.display = 'none'; DOM.adminPanel.style.display = 'block'; DOM.inPin.value=''; DOM.pinError.style.display='none'; AdminCtrl.syncUIToState(); } 
+                    else DOM.pinError.style.display = 'block';
                 });
                 DOM.btnCloseAdmin.addEventListener('click', () => DOM.adminPanel.style.display = 'none');
 
-                // MENGUBAH SEMUA LISTENER AGAR OTOMATIS MEMANGGIL `StorageCtrl.save(true)`
-                
                 DOM.uiAutoNight.addEventListener('change', e => { state.autoNightMode = e.target.checked; StorageCtrl.save(true); });
-                DOM.btnApplyPreset.addEventListener('click', () => {
-                    const p = DOM.uiPreset.value;
-                    if(Presets[p]) {
-                        Object.assign(state, Presets[p]);
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play();
-                        StorageCtrl.save(true);
-                    }
-                });
-                DOM.uiSleepTimer.addEventListener('change', e => {
-                    state.sleepTimer = parseInt(e.target.value);
-                    TimeCtrl.startSleepTimer(state.sleepTimer);
-                    StorageCtrl.save(true);
-                });
-
+                DOM.btnApplyPreset.addEventListener('click', () => { const p = DOM.uiPreset.value; if(Presets[p]) { Object.assign(state, Presets[p]); AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play(); StorageCtrl.save(true); } });
+                DOM.uiSleepTimer.addEventListener('change', e => { state.sleepTimer = parseInt(e.target.value); TimeCtrl.startSleepTimer(state.sleepTimer); StorageCtrl.save(true); });
                 DOM.uiAlarmTime.addEventListener('input', e => { state.alarmTime = e.target.value; StorageCtrl.save(true); });
                 DOM.uiAlarmActive.addEventListener('change', e => { state.alarmActive = e.target.checked; StorageCtrl.save(true); });
                 DOM.btnStopAlarm.addEventListener('click', AlarmCtrl.stop);
-
-                DOM.uiTheme.addEventListener('change', e => { 
-                    state.theme = e.target.value; 
-                    DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none';
-                    ThemeCtrl.render(); 
-                    StorageCtrl.save(true);
-                });
-                ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => {
-                    state[id.replace('ui','custom')] = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true);
-                }));
+                DOM.uiTheme.addEventListener('change', e => { state.theme = e.target.value; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none'; ThemeCtrl.render(); StorageCtrl.save(true); });
+                ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => { state[id.replace('ui','custom')] = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); }));
                 DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiPerf.addEventListener('change', e => { state.performanceMode = e.target.checked; ThemeCtrl.render(); StorageCtrl.save(true); });
-
-                DOM.btnLoadYt.addEventListener('click', () => {
-                    state.ytVideoId = DOM.uiYtId.value.trim();
-                    if(ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-                        ytPlayer.loadVideoById(state.ytVideoId);
-                        alert("YouTube Berhasil Dimuat!");
-                        StorageCtrl.save(true);
-                    } else if (!ytPlayerReady) {
-                        alert("API YouTube belum siap. Harap tunggu sebentar lalu coba lagi.");
-                    }
-                });
+                DOM.btnLoadYt.addEventListener('click', () => { state.ytVideoId = DOM.uiYtId.value.trim(); if(ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') { ytPlayer.loadVideoById(state.ytVideoId); alert("YouTube Berhasil Dimuat!"); StorageCtrl.save(true); } else if (!ytPlayerReady) alert("API YouTube belum siap. Harap tunggu sebentar lalu coba lagi."); });
                 DOM.uiQuranSurah.addEventListener('input', e => { state.quranSurah = e.target.value; StorageCtrl.save(true); });
-                DOM.uiShowQuran.addEventListener('change', e => {
-                    state.showQuran = e.target.checked;
-                    QuranCtrl.fetchAndRender();
-                    StorageCtrl.save(true);
-                });
-
-                DOM.uiCustomAudioFile.addEventListener('change', e => {
-                    const file = e.target.files[0];
-                    if(file) {
-                        DOM.customAudioPlayer.src = URL.createObjectURL(file);
-                        state.useCustomAudio = true;
-                        DOM.txtCustomAudioName.innerText = "Loaded: " + file.name;
-                        // Catatan: File lokal tidak disync via Firebase karena ukurannya memakan bandwidth db
-                    }
-                });
+                DOM.uiShowQuran.addEventListener('change', e => { state.showQuran = e.target.checked; QuranCtrl.fetchAndRender(); StorageCtrl.save(true); });
+                DOM.uiCustomAudioFile.addEventListener('change', e => { const file = e.target.files[0]; if(file) { DOM.customAudioPlayer.src = URL.createObjectURL(file); state.useCustomAudio = true; DOM.txtCustomAudioName.innerText = "Loaded: " + file.name; } });
                 DOM.tglWN.addEventListener('change', e => { state.enWhiteNoise = e.target.checked; StorageCtrl.save(true); });
                 DOM.tglOc.addEventListener('change', e => { state.enOcean = e.target.checked; StorageCtrl.save(true); });
                 DOM.tglHb.addEventListener('change', e => { state.enHeartbeat = e.target.checked; StorageCtrl.save(true); });
@@ -1447,85 +1090,41 @@
                 DOM.volOc.addEventListener('input', e => { state.volOcean = e.target.value/100; StorageCtrl.save(true); });
                 DOM.volHb.addEventListener('input', e => { state.volHeartbeat = e.target.value/100; StorageCtrl.save(true); });
                 DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; AudioCtrl.updateVolumes(); StorageCtrl.save(true); });
-                
-                DOM.btnPlay.addEventListener('click', () => { AudioCtrl.play(); StorageCtrl.save(true); }); // Memanggil fungsi Play dan menyimpannya di DB
+                DOM.btnPlay.addEventListener('click', () => { AudioCtrl.play(); StorageCtrl.save(true); }); 
                 DOM.btnStop.addEventListener('click', () => { AudioCtrl.stop(); StorageCtrl.save(true); });
-
                 DOM.btnSaveName.addEventListener('click', () => { state.babyName = DOM.uiBabyName.value; ThemeCtrl.render(); StorageCtrl.save(true); });
                 DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
                 DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
                 DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
                 DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; LocationCtrl.fetchPrayer(); StorageCtrl.save(true); });
                 DOM.btnGeo.addEventListener('click', LocationCtrl.autoDetect);
-
-                DOM.btnChangePin.addEventListener('click', () => {
-                    const np = DOM.uiNewPin.value;
-                    if(np.length === 4) { state.adminPin = np; alert("PIN Updated!"); DOM.uiNewPin.value=''; StorageCtrl.save(true); }
-                    else alert("PIN harus 4 digit!");
-                });
-                
-                // Jika tombol "Save" manual ditekan, maka param=false agar muncul notifikasi "Pengaturan tersimpan"
+                DOM.btnChangePin.addEventListener('click', () => { const np = DOM.uiNewPin.value; if(np.length === 4) { state.adminPin = np; alert("PIN Updated!"); DOM.uiNewPin.value=''; StorageCtrl.save(true); } else alert("PIN harus 4 digit!"); });
                 DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
                 DOM.btnResetState.addEventListener('click', StorageCtrl.reset);
             },
-
             syncUIToState: () => {
-                DOM.uiAutoNight.checked = state.autoNightMode;
-                DOM.uiTheme.value = state.theme;
-                DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none';
+                DOM.uiAutoNight.checked = state.autoNightMode; DOM.uiTheme.value = state.theme; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none';
                 DOM.uiBg1.value = state.customBg1; DOM.uiBg2.value = state.customBg2; DOM.uiPColor.value = state.customPColor;
                 DOM.uiBrightness.value = state.brightness; document.getElementById('val-brightness').innerText = `${state.brightness}% Dark`;
                 DOM.uiParticle.value = state.particleCount; document.getElementById('val-particle').innerText = state.particleCount;
                 DOM.uiSpeed.value = state.animSpeed; document.getElementById('val-speed').innerText = state.animSpeed+'x';
-                DOM.uiPerf.checked = state.performanceMode;
-                
-                DOM.uiAlarmTime.value = state.alarmTime;
-                DOM.uiAlarmActive.checked = state.alarmActive;
-
-                DOM.uiYtId.value = state.ytVideoId;
-                DOM.uiQuranSurah.value = state.quranSurah;
-                DOM.uiShowQuran.checked = state.showQuran;
-
+                DOM.uiPerf.checked = state.performanceMode; DOM.uiAlarmTime.value = state.alarmTime; DOM.uiAlarmActive.checked = state.alarmActive;
+                DOM.uiYtId.value = state.ytVideoId; DOM.uiQuranSurah.value = state.quranSurah; DOM.uiShowQuran.checked = state.showQuran;
                 DOM.tglWN.checked = state.enWhiteNoise; DOM.volWN.value = state.volWhiteNoise * 100;
                 DOM.tglOc.checked = state.enOcean; DOM.volOc.value = state.volOcean * 100;
                 DOM.tglHb.checked = state.enHeartbeat; DOM.volHb.value = state.volHeartbeat * 100;
                 DOM.uiMasterVol.value = state.masterVolume * 100; document.getElementById('val-master-vol').innerText = (state.masterVolume*100)+'%';
-                
-                DOM.uiBabyName.value = state.babyName;
-                DOM.uiClock.value = state.clockType;
-                DOM.uiClockColor.value = state.clockColor;
-                DOM.uiClockFont.value = state.clockFont;
-                DOM.uiPrayer.checked = state.showPrayer;
+                DOM.uiBabyName.value = state.babyName; DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; DOM.uiPrayer.checked = state.showPrayer;
             }
         };
 
-        // ==========================================
-        // 9. APP INITIALIZATION
-        // ==========================================
         function startApp() {
-            StorageCtrl.load();     
-            AdminCtrl.init();       
-            AdminCtrl.syncUIToState(); 
-            ThemeCtrl.render();     
-            TimeCtrl.init();        
-            LocationCtrl.fetchPrayer(); 
-            GestureCtrl.init();     
-            QuranCtrl.fetchAndRender();
-            
-            loadYouTubeScript();
-            setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
-
-            // MENGAKTIFKAN LISTENER FIREBASE
-            // Jika modul Firebase sudah siap, langsung panggil. Jika belum, tunggu event "firebase-ready"
-            if (window.firebaseDb) {
-                StorageCtrl.listenFirebase();
-            } else {
-                window.addEventListener('firebase-ready', StorageCtrl.listenFirebase);
-            }
+            StorageCtrl.load(); AdminCtrl.init(); AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.init();        
+            LocationCtrl.fetchPrayer(); GestureCtrl.init(); QuranCtrl.fetchAndRender();
+            loadYouTubeScript(); setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
+            StorageCtrl.listenFirebase(); // Mulai Koneksi Firebase
         }
-
         window.onload = startApp;
-
     </script>
 </body>
 </html>
