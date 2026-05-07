@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Night Remote</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body, html { width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; background-color: #0f0f13; color: #fff; }
+
+        /* Admin Panel Modern Mobile-First */
+        #admin-panel { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+
+        .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: #1a1a24; }
+        .admin-header h2 { font-size: 1.3rem; color: #4facfe; letter-spacing: 1px; }
+
+        .admin-tabs { display: flex; overflow-x: auto; background: #1a1a24; padding: 10px 10px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-tabs::-webkit-scrollbar { height: 0px; }
+        .tab-btn { background: none; border: none; color: #aaa; padding: 12px 15px; cursor: pointer; font-size: 0.95rem; font-weight: bold; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-btn.active { color: #4facfe; border-bottom: 3px solid #4facfe; }
+
+        .admin-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; }
+        .admin-section { display: none; animation: fadeIn 0.3s ease; }
+        .admin-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-group { margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .form-group label { display: block; margin-bottom: 10px; font-size: 0.9rem; color: #ddd; font-weight: 500;}
+        .form-group-flex { display: flex; align-items: center; justify-content: space-between; gap:10px; margin-bottom: 10px;}
+        
+        select, input[type="range"], input[type="text"], input[type="number"], input[type="color"], input[type="time"] {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; outline: none; transition: 0.3s; font-size: 1rem;
+        }
+        select:focus, input[type="text"]:focus { border-color: #4facfe; }
+        input[type="color"] { padding: 2px; height: 45px; cursor: pointer; }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #4facfe; }
+        .checkbox-group label { margin: 0; cursor: pointer; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.95rem;}
+        .btn-primary { background: linear-gradient(45deg, #4facfe, #00f2fe); color: #000; }
+        .btn-primary:active { opacity: 0.8; }
+        .btn-danger { background: #ff4757; color: white; }
+        .btn-warning { background: #ffd700; color: #000; }
+        .btn-success { background: #2ed573; color: #000; }
+
+        .slider-val { font-size: 0.8rem; color: #4facfe; float: right; font-weight: bold; background: rgba(79, 172, 254, 0.2); padding: 2px 8px; border-radius: 10px;}
+        
+        /* Floating Stop Alarm Button */
+        #btn-stop-alarm { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; box-shadow: 0 10px 20px rgba(255,0,0,0.5); display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2>✨ Baby Remote Control</h2>
+            <span id="sync-status" style="font-size:0.8rem; color:#2ed573;">● Online</span>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-target="sec-visual">🎨 Tema</button>
+            <button class="tab-btn" data-target="sec-text">✍️ Teks</button>
+            <button class="tab-btn" data-target="sec-islami">📿 Islami</button>
+            <button class="tab-btn" data-target="sec-audio">🎵 Audio</button>
+            <button class="tab-btn" data-target="sec-time">🕰️ Waktu</button>
+            <button class="tab-btn" data-target="sec-sys">⚙️ Sistem</button>
+        </div>
+
+        <div class="admin-content">
+            
+            <!-- SECTION 1: VISUALS -->
+            <div id="sec-visual" class="admin-section active">
+                <div class="form-group">
+                    <label>Pilih Tema Latar (13 Pilihan)</label>
+                    <select id="set-theme">
+                        <option value="night-sky">🌌 Night Sky (Bintang Klasik)</option>
+                        <option value="ocean">🌊 Ocean (Ombak Laut)</option>
+                        <option value="forest">🌲 Forest (Hutan Kunang-kunang)</option>
+                        <option value="sunset">🌅 Sunset (Senja Jingga)</option>
+                        <option value="aurora">🎇 Aurora Borealis (Ungu Hijau)</option>
+                        <option value="galaxy">🪐 Deep Galaxy</option>
+                        <option value="rain">🌧️ Rain (Hujan Turun)</option>
+                        <option value="snow">❄️ Snow (Salju Lembut)</option>
+                        <option value="fire">🔥 Campfire (Percikan Api)</option>
+                        <option value="underwater">🐡 Underwater (Gelembung Biru)</option>
+                        <option value="clouds">☁️ Moving Clouds (Awan Berjalan)</option>
+                        <option value="matrix">💻 The Matrix (Teks Hijau)</option>
+                        <option value="custom">🛠️ Custom Editor (Warna Sendiri)</option>
+                        <option value="blank">⬛ Blank (Hitam Polos)</option>
+                    </select>
+                </div>
+                
+                <div id="custom-theme-editor" style="display:none; padding-top: 10px;">
+                    <div class="form-group-flex">
+                        <div style="flex:1"><label>Atas</label><input type="color" id="set-bg1"></div>
+                        <div style="flex:1"><label>Bawah</label><input type="color" id="set-bg2"></div>
+                        <div style="flex:1"><label>Partikel</label><input type="color" id="set-pcolor"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kecerahan (Redupkan Layar) <span class="slider-val" id="val-brightness">0% Dark</span></label>
+                    <input type="range" id="set-brightness" min="0" max="95" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Kepadatan Partikel <span class="slider-val" id="val-particle">60</span></label>
+                    <input type="range" id="set-particle" min="0" max="200" value="60">
+                </div>
+                <div class="form-group">
+                    <label>Kecepatan Animasi <span class="slider-val" id="val-speed">1x</span></label>
+                    <input type="range" id="set-speed" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="set-performance">
+                    <label for="set-performance">Mode Hemat CPU (Matikan Blur)</label>
+                </div>
+            </div>
+
+            <!-- SECTION 2: TEKS & MEDIA (NAMA, CUSTOM OVERLAY) -->
+            <div id="sec-text" class="admin-section">
+                <div class="form-group">
+                    <label>Nama Bayi (Melayang)</label>
+                    <input type="text" id="set-baby-name" placeholder="Ketik nama bayi...">
+                    <div class="form-group-flex" style="margin-top:10px;">
+                        <div style="flex:2">
+                            <select id="set-baby-font">
+                                <option value="'Segoe UI', sans-serif">Modern (Segoe UI)</option>
+                                <option value="Arial, sans-serif">Basic (Arial)</option>
+                                <option value="'Courier New', monospace">Monospace (Courier)</option>
+                                <option value="'Comic Sans MS', cursive">Kids (Comic Sans)</option>
+                                <option value="'Times New Roman', serif">Classic (Times NR)</option>
+                                <option value="Impact, fantasy">Bold (Impact)</option>
+                                <option value="'Trebuchet MS', sans-serif">Clean (Trebuchet)</option>
+                                <option value="'Georgia', serif">Elegant (Georgia)</option>
+                                <option value="'Palatino', serif">Royal (Palatino)</option>
+                                <option value="'Brush Script MT', cursive">Handwriting (Brush)</option>
+                                <option value="'Lucida Sans', sans-serif">Soft (Lucida)</option>
+                            </select>
+                        </div>
+                        <div style="flex:1"><input type="color" id="set-baby-color" value="#ffffff"></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <label>Teks LED Berjalan (Marquee Bawah)</label>
+                    <input type="text" id="set-overlay-text" placeholder="Misal: Selamat malam semuanya...">
+                </div>
+                <div class="form-group">
+                    <label>Media Gambar Pojok Kanan (Link URL)</label>
+                    <input type="text" id="set-overlay-img" placeholder="https://domain.com/gambar.gif">
+                </div>
+            </div>
+
+            <!-- SECTION 3: FITUR ISLAMI (BARU) -->
+            <div id="sec-islami" class="admin-section">
+                <div class="form-group" style="background: rgba(46, 213, 115, 0.1); border-color: rgba(46, 213, 115, 0.3);">
+                    <label style="color:#2ed573;">📿 Murattal Tersinkronisasi Teks</label>
+                    <p style="font-size: 0.8rem; color:#aaa; margin-bottom: 10px;">Suara Syeikh akan diputar dan teks Al-Quran akan berganti presisi per ayat otomatis.</p>
+                    <select id="set-islami-surah" style="margin-bottom:10px;">
+                        <option value="1">Al-Fatihah</option>
+                        <option value="255">Ayat Kursi (Al-Baqarah 255)</option> <!-- Menggunakan custom map di script -->
+                        <option value="109">Al-Kafirun</option>
+                        <option value="112">Al-Ikhlas</option>
+                        <option value="113">Al-Falaq</option>
+                        <option value="114">An-Nas</option>
+                        <option value="55">Ar-Rahman</option>
+                        <option value="67">Al-Mulk</option>
+                    </select>
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="btn-islami-play">▶ Putar Murattal</button>
+                        <button class="btn btn-danger" id="btn-islami-stop">■ Hentikan</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tampilan Al-Quran Biasa (Teks Tanpa Suara)</label>
+                    <div class="form-group-flex">
+                        <input type="number" id="set-quran-surah" min="1" max="114" placeholder="Nomor Surat (1-114)" value="1" style="flex:2">
+                        <div class="checkbox-group" style="flex:1; justify-content:center;">
+                            <input type="checkbox" id="set-show-quran"> <label>Aktif</label>
+                        </div>
+                    </div>
+                    <div class="form-group-flex" style="margin-top:10px;">
+                        <select id="set-quran-size" style="flex:1;">
+                            <option value="1.5">Kecil</option>
+                            <option value="2" selected>Sedang</option>
+                            <option value="3">Besar</option>
+                        </select>
+                        <select id="set-quran-font" style="flex:1;">
+                            <option value="'Amiri', serif">Arabic Amiri</option>
+                            <option value="'Traditional Arabic', serif">Traditional</option>
+                            <option value="'Segoe UI', sans-serif">Modern</option>
+                        </select>
+                    </div>
+                    <label style="margin-top:10px;">Kecepatan Ganti Ayat (Tanpa Audio) <span class="slider-val" id="val-quran-speed">100ms</span></label>
+                    <input type="range" id="set-quran-speed" min="30" max="200" step="10" value="100">
+                </div>
+
+                <div class="form-group checkbox-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <input type="checkbox" id="set-show-adzan" checked>
+                    <label for="set-show-adzan">Aktifkan Adzan Otomatis & Countdown Waktu Sholat (Layar Glow Emas)</label>
+                </div>
+            </div>
+
+            <!-- SECTION 4: AUDIO Latar & YOUTUBE -->
+            <div id="sec-audio" class="admin-section">
+                <div class="form-group">
+                    <label>YouTube Player (Playlist Murattal/Lullaby)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="set-yt-id" placeholder="ID Video (Misal: dQw4w9WgXcQ)">
+                        <button class="btn btn-primary" id="btn-load-yt" style="width:auto;">Load</button>
+                    </div>
+                    <div class="btn-group" style="margin-top:10px;">
+                        <button class="btn btn-success" id="btn-yt-play">▶ Play YT</button>
+                        <button class="btn btn-warning" id="btn-yt-pause">⏸ Pause YT</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Suara Alam (Generator Latar)</label>
+                    <div class="checkbox-group" style="margin-bottom:5px;"><input type="checkbox" id="tgl-whitenoise"> <label>White Noise / Kipas</label></div>
+                    <input type="range" id="vol-whitenoise" min="0" max="100" value="50">
+                    <div class="checkbox-group" style="margin:15px 0 5px 0;"><input type="checkbox" id="tgl-ocean"> <label>Ombak Laut</label></div>
+                    <input type="range" id="vol-ocean" min="0" max="100" value="50">
+                    <div class="checkbox-group" style="margin:15px 0 5px 0;"><input type="checkbox" id="tgl-heartbeat"> <label>Detak Jantung Ibu</label></div>
+                    <input type="range" id="vol-heartbeat" min="0" max="100" value="80">
+                </div>
+
+                <div class="form-group" style="background: rgba(46, 213, 115, 0.1);">
+                    <label style="color:#2ed573;">Master Volume Utama <span class="slider-val" id="val-master-vol" style="background:none;">30%</span></label>
+                    <input type="range" id="set-master-volume" min="0" max="100" value="30">
+                    <button class="btn btn-danger" id="btn-stop-audio" style="width:100%; margin-top:10px;">■ MUTE SEMUA AUDIO</button>
+                </div>
+            </div>
+
+            <!-- SECTION 5: WAKTU & ALARM -->
+            <div id="sec-time" class="admin-section">
+                <div class="form-group">
+                    <label>Tampilan Jam Proyektor</label>
+                    <div class="form-group-flex">
+                        <select id="set-clock" style="flex:2">
+                            <option value="digital">Digital Clock</option>
+                            <option value="analog">Analog Clock</option>
+                            <option value="hidden">Sembunyikan Jam</option>
+                        </select>
+                        <input type="color" id="set-clock-color" value="#ffffff" style="flex:1">
+                    </div>
+                    <select id="set-clock-font" style="margin-top:10px;">
+                        <option value="'Segoe UI', Tahoma, sans-serif">Modern (Segoe UI)</option>
+                        <option value="'Courier New', Courier, monospace">Digital Mono</option>
+                        <option value="'Comic Sans MS', cursive, sans-serif">Playful Kids</option>
+                        <option value="'Times New Roman', Times, serif">Classic Serif</option>
+                        <option value="Impact, fantasy">Bold Impact</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ukuran Jam (Zoom) <span class="slider-val" id="val-clock-size">1x</span></label>
+                    <input type="range" id="set-clock-size" min="0.5" max="3" step="0.1" value="1">
+                    <div class="checkbox-group" style="margin-top: 15px;">
+                        <input type="checkbox" id="set-clock-seconds" checked>
+                        <label for="set-clock-seconds">Tampilkan Detik Waktu</label>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                    <input type="checkbox" id="set-prayer" checked> <label>Tampilkan Jadwal Sholat di Bawah Layar</label>
+                </div>
+                <button class="btn btn-warning" id="btn-geo" style="width:100%;">📍 Update Lokasi Sholat (GPS HP)</button>
+
+                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top: 20px;">
+                    <label>Alarm Bangun Pagi</label>
+                    <div class="form-group-flex">
+                        <input type="time" id="set-alarm-time" style="flex:1">
+                        <div class="checkbox-group" style="flex:1; justify-content:center;">
+                            <input type="checkbox" id="set-alarm-active"> <label>AKTIF</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 6: SYSTEM & AUTO -->
+            <div id="sec-sys" class="admin-section">
+                <div class="form-group">
+                    <label>Mode Pintar</label>
+                    <div class="checkbox-group" style="margin-bottom:10px;">
+                        <input type="checkbox" id="set-auto-night">
+                        <label>Smart Auto Night (Redup Jam 18:00 - 05:59)</label>
+                    </div>
+                    <label style="margin-top:10px;">Preset Langsung:</label>
+                    <div class="form-group-flex">
+                        <select id="set-preset" style="flex:2">
+                            <option value="custom">-- Pilih Preset --</option>
+                            <option value="newborn">👶 Newborn (White Noise)</option>
+                            <option value="deepsleep">💤 Deep Sleep (Gelap Gulita)</option>
+                            <option value="calm">🌊 Calm Mode (Suara Ombak)</option>
+                        </select>
+                        <button class="btn btn-primary" id="btn-apply-preset" style="flex:1;">Apply</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Sleep Timer (Mati Otomatis)</label>
+                    <select id="set-sleep-timer">
+                        <option value="0">Off (Menyala Terus)</option>
+                        <option value="15">15 Menit</option>
+                        <option value="30">30 Menit</option>
+                        <option value="60">1 Jam</option>
+                        <option value="120">2 Jam</option>
+                    </select>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 30px;">
+                    <button class="btn btn-success" id="btn-save-state">💾 Save Data</button>
+                    <button class="btn btn-danger" id="btn-reset-state">🔄 Reset</button>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Tombol Stop Alarm Global -->
+        <button class="btn btn-danger" id="btn-stop-alarm" style="padding: 20px;">🔕 MATIKAN ALARM / ADZAN YANG BERBUNYI</button>
+    </div>
+
+    <!-- FIREBASE SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
+          authDomain: "bbynight-d2bb0.firebaseapp.com",
+          projectId: "bbynight-d2bb0",
+          storageBucket: "bbynight-d2bb0.firebasestorage.app",
+          messagingSenderId: "169917444760",
+          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
+          measurementId: "G-3CQQWZE5QB"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.firebaseDb = getFirestore(app);
+            window.firebaseDoc = doc;
+            window.firebaseSetDoc = setDoc;
+            window.firebaseUpdateDoc = updateDoc;
+            window.firebaseOnSnapshot = onSnapshot;
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (e) { console.error("Firebase Error:", e); }
+    </script>
+
+    <script>
+        const defaultState = {
+            theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
+            clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
+            particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
+            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8,
+            ytVideoId: '', ytPlayState: false,
+            quranSurah: '1', showQuran: false, quranSize: 2, quranFont: "'Amiri', serif", quranSpeed: 100,
+            islamiPlayState: false, islamiSurah: '1', showAdzan: true,
+            alarmTime: '', alarmActive: false, isAlarmRinging: false, lat: -6.2088, lng: 106.8456, 
+            babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff",
+            overlayText: '', overlayImg: '', performanceMode: false
+        };
+
+        let state = { ...defaultState };
+        let firebaseSyncTimeout = null;
+
+        const StorageCtrl = {
+            save: async () => {
+                if (window.firebaseDb) {
+                    clearTimeout(firebaseSyncTimeout);
+                    firebaseSyncTimeout = setTimeout(async () => {
+                        try {
+                            const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                            await window.firebaseSetDoc(docRef, state);
+                            document.getElementById('sync-status').innerText = "● Tersimpan";
+                            setTimeout(() => document.getElementById('sync-status').innerText = "● Online", 2000);
+                        } catch (e) { document.getElementById('sync-status').innerText = "● Error DB"; document.getElementById('sync-status').style.color = "red"; }
+                    }, 300); 
+                }
+            },
+            listenFirebase: () => {
+                if (window.firebaseDb) {
+                    const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
+                    window.firebaseOnSnapshot(docRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            Object.assign(state, docSnap.data()); 
+                            AdminCtrl.syncUIToState();
+                            if(state.isAlarmRinging) document.getElementById('btn-stop-alarm').style.display = 'block';
+                            else document.getElementById('btn-stop-alarm').style.display = 'none';
+                        }
+                    });
+                }
+            }
+        };
+
+        const Presets = {
+            newborn: { theme: 'night-sky', brightness: 20, enWhiteNoise: true, enOcean: false, enHeartbeat: true, masterVolume: 0.4, particleCount: 80 },
+            deepsleep: { theme: 'blank', brightness: 80, enWhiteNoise: false, enOcean: false, enHeartbeat: false, masterVolume: 0.1, particleCount: 0 },
+            calm: { theme: 'ocean', brightness: 40, enWhiteNoise: false, enOcean: true, enHeartbeat: false, masterVolume: 0.3, particleCount: 0 }
+        };
+
+        const DOM = {
+            btnDisplayStopAlarm: document.getElementById('btn-stop-alarm'),
+            uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'),
+            uiBrightness: document.getElementById('set-brightness'), uiParticle: document.getElementById('set-particle'), uiSpeed: document.getElementById('set-speed'), uiPerf: document.getElementById('set-performance'),
+            
+            uiBabyName: document.getElementById('set-baby-name'), uiBabyFont: document.getElementById('set-baby-font'), uiBabyColor: document.getElementById('set-baby-color'),
+            uiOverlayTxt: document.getElementById('set-overlay-text'), uiOverlayImg: document.getElementById('set-overlay-img'),
+            
+            uiYtId: document.getElementById('set-yt-id'), btnLoadYt: document.getElementById('btn-load-yt'), btnPlayYt: document.getElementById('btn-yt-play'), btnPauseYt: document.getElementById('btn-yt-pause'),
+            tglWN: document.getElementById('tgl-whitenoise'), volWN: document.getElementById('vol-whitenoise'), tglOc: document.getElementById('tgl-ocean'), volOc: document.getElementById('vol-ocean'), tglHb: document.getElementById('tgl-heartbeat'), volHb: document.getElementById('vol-heartbeat'), uiMasterVol: document.getElementById('set-master-volume'), btnStop: document.getElementById('btn-stop-audio'),
+            
+            uiIslamiSurah: document.getElementById('set-islami-surah'), btnIslamiPlay: document.getElementById('btn-islami-play'), btnIslamiStop: document.getElementById('btn-islami-stop'),
+            uiShowAdzan: document.getElementById('set-show-adzan'),
+            
+            uiQuranSurah: document.getElementById('set-quran-surah'), uiShowQuran: document.getElementById('set-show-quran'), uiQuranSize: document.getElementById('set-quran-size'), uiQuranFont: document.getElementById('set-quran-font'), uiQuranSpeed: document.getElementById('set-quran-speed'),
+            
+            uiClock: document.getElementById('set-clock'), uiClockColor: document.getElementById('set-clock-color'), uiClockFont: document.getElementById('set-clock-font'), uiPrayer: document.getElementById('set-prayer'), btnGeo: document.getElementById('btn-geo'),
+            uiClockSize: document.getElementById('set-clock-size'), uiClockSeconds: document.getElementById('set-clock-seconds'),
+            uiAlarmTime: document.getElementById('set-alarm-time'), uiAlarmActive: document.getElementById('set-alarm-active'),
+            
+            uiAutoNight: document.getElementById('set-auto-night'), uiPreset: document.getElementById('set-preset'), btnApplyPreset: document.getElementById('btn-apply-preset'), uiSleepTimer: document.getElementById('set-sleep-timer'),
+            btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state')
+        };
+
+        const AdminCtrl = {
+            init: () => {
+                // Navigasi Tab
+                const tabBtns = document.querySelectorAll('.tab-btn');
+                const sections = document.querySelectorAll('.admin-section');
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        tabBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+                        sections.forEach(s => s.classList.remove('active')); document.getElementById(btn.getAttribute('data-target')).classList.add('active');
+                    });
+                });
+
+                // Listeners yang auto push ke Firebase
+                DOM.uiTheme.addEventListener('change', e => { state.theme = e.target.value; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none'; StorageCtrl.save(); });
+                ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => { state[id.replace('ui','custom')] = e.target.value; StorageCtrl.save(); }));
+                DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; StorageCtrl.save(); });
+                DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; StorageCtrl.save(); });
+                DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; StorageCtrl.save(); });
+                DOM.uiPerf.addEventListener('change', e => { state.performanceMode = e.target.checked; StorageCtrl.save(); });
+
+                DOM.uiBabyName.addEventListener('input', e => { state.babyName = e.target.value; StorageCtrl.save(); });
+                DOM.uiBabyFont.addEventListener('change', e => { state.babyFont = e.target.value; StorageCtrl.save(); });
+                DOM.uiBabyColor.addEventListener('input', e => { state.babyColor = e.target.value; StorageCtrl.save(); });
+                DOM.uiOverlayTxt.addEventListener('input', e => { state.overlayText = e.target.value; StorageCtrl.save(); });
+                DOM.uiOverlayImg.addEventListener('input', e => { state.overlayImg = e.target.value; StorageCtrl.save(); });
+
+                // Fitur Islami Audio
+                DOM.uiIslamiSurah.addEventListener('change', e => { state.islamiSurah = e.target.value; });
+                DOM.btnIslamiPlay.addEventListener('click', () => { state.islamiPlayState = true; state.showQuran = false; StorageCtrl.save(); });
+                DOM.btnIslamiStop.addEventListener('click', () => { state.islamiPlayState = false; StorageCtrl.save(); });
+                DOM.uiShowAdzan.addEventListener('change', e => { state.showAdzan = e.target.checked; StorageCtrl.save(); });
+
+                // Quran Teks Biasa
+                DOM.uiQuranSurah.addEventListener('input', e => { state.quranSurah = e.target.value; StorageCtrl.save(); });
+                DOM.uiShowQuran.addEventListener('change', e => { state.showQuran = e.target.checked; state.islamiPlayState = false; StorageCtrl.save(); });
+                DOM.uiQuranSize.addEventListener('change', e => { state.quranSize = e.target.value; StorageCtrl.save(); });
+                DOM.uiQuranFont.addEventListener('change', e => { state.quranFont = e.target.value; StorageCtrl.save(); });
+                DOM.uiQuranSpeed.addEventListener('input', e => { state.quranSpeed = e.target.value; document.getElementById('val-quran-speed').innerText = e.target.value+'ms'; StorageCtrl.save(); });
+
+                // Audio YT & Synth
+                DOM.btnLoadYt.addEventListener('click', () => { state.ytVideoId = DOM.uiYtId.value.trim(); StorageCtrl.save(); });
+                DOM.btnPlayYt.addEventListener('click', () => { state.ytPlayState = true; StorageCtrl.save(); });
+                DOM.btnPauseYt.addEventListener('click', () => { state.ytPlayState = false; StorageCtrl.save(); });
+                DOM.tglWN.addEventListener('change', e => { state.enWhiteNoise = e.target.checked; StorageCtrl.save(); });
+                DOM.tglOc.addEventListener('change', e => { state.enOcean = e.target.checked; StorageCtrl.save(); });
+                DOM.tglHb.addEventListener('change', e => { state.enHeartbeat = e.target.checked; StorageCtrl.save(); });
+                DOM.volWN.addEventListener('input', e => { state.volWhiteNoise = e.target.value/100; StorageCtrl.save(); });
+                DOM.volOc.addEventListener('input', e => { state.volOcean = e.target.value/100; StorageCtrl.save(); });
+                DOM.volHb.addEventListener('input', e => { state.volHeartbeat = e.target.value/100; StorageCtrl.save(); });
+                DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; StorageCtrl.save(); });
+                DOM.btnStop.addEventListener('click', () => { state.enWhiteNoise = false; state.enOcean = false; state.enHeartbeat = false; StorageCtrl.save(); });
+
+                // Waktu & Alarm
+                DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; StorageCtrl.save(); });
+                DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; StorageCtrl.save(); });
+                DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; StorageCtrl.save(); });
+                DOM.uiClockSize.addEventListener('input', e => { state.clockSize = e.target.value; document.getElementById('val-clock-size').innerText = e.target.value+'x'; StorageCtrl.save(); });
+                DOM.uiClockSeconds.addEventListener('change', e => { state.clockSeconds = e.target.checked; StorageCtrl.save(); });
+                DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; StorageCtrl.save(); });
+                DOM.uiAlarmTime.addEventListener('input', e => { state.alarmTime = e.target.value; StorageCtrl.save(); });
+                DOM.uiAlarmActive.addEventListener('change', e => { state.alarmActive = e.target.checked; StorageCtrl.save(); });
+                
+                // Matikan Alarm Global
+                DOM.btnDisplayStopAlarm.addEventListener('click', () => {
+                    state.isAlarmRinging = false; state.alarmActive = false;
+                    if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), { isAlarmRinging: false, alarmActive: false });
+                });
+
+                // Auto & GPS
+                DOM.btnGeo.addEventListener('click', () => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition((pos) => { state.lat = pos.coords.latitude; state.lng = pos.coords.longitude; alert(`Lokasi Diupdate! Lat: ${state.lat.toFixed(2)}, Lng: ${state.lng.toFixed(2)}`); StorageCtrl.save(); }, () => alert("Gagal akses lokasi GPS."));
+                    }
+                });
+                DOM.uiAutoNight.addEventListener('change', e => { state.autoNightMode = e.target.checked; StorageCtrl.save(); });
+                DOM.btnApplyPreset.addEventListener('click', () => { const p = DOM.uiPreset.value; if(Presets[p]) { Object.assign(state, Presets[p]); StorageCtrl.save(); } });
+                DOM.uiSleepTimer.addEventListener('change', e => { state.sleepTimer = parseInt(e.target.value); StorageCtrl.save(); });
+                
+                DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
+                DOM.btnResetState.addEventListener('click', StorageCtrl.reset);
+            },
+            syncUIToState: () => {
+                DOM.uiTheme.value = state.theme; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none';
+                DOM.uiBg1.value = state.customBg1; DOM.uiBg2.value = state.customBg2; DOM.uiPColor.value = state.customPColor;
+                DOM.uiBrightness.value = state.brightness; document.getElementById('val-brightness').innerText = `${state.brightness}% Dark`;
+                DOM.uiParticle.value = state.particleCount; document.getElementById('val-particle').innerText = state.particleCount;
+                DOM.uiSpeed.value = state.animSpeed; document.getElementById('val-speed').innerText = state.animSpeed+'x';
+                DOM.uiPerf.checked = state.performanceMode; 
+                
+                DOM.uiBabyName.value = state.babyName; DOM.uiBabyFont.value = state.babyFont; DOM.uiBabyColor.value = state.babyColor;
+                DOM.uiOverlayTxt.value = state.overlayText || ''; DOM.uiOverlayImg.value = state.overlayImg || '';
+                
+                DOM.uiIslamiSurah.value = state.islamiSurah; DOM.uiShowAdzan.checked = state.showAdzan;
+                DOM.uiQuranSurah.value = state.quranSurah; DOM.uiShowQuran.checked = state.showQuran;
+                DOM.uiQuranSize.value = state.quranSize; DOM.uiQuranFont.value = state.quranFont; DOM.uiQuranSpeed.value = state.quranSpeed; document.getElementById('val-quran-speed').innerText = state.quranSpeed+'ms';
+                
+                DOM.uiYtId.value = state.ytVideoId;
+                DOM.tglWN.checked = state.enWhiteNoise; DOM.volWN.value = state.volWhiteNoise * 100;
+                DOM.tglOc.checked = state.enOcean; DOM.volOc.value = state.volOcean * 100;
+                DOM.tglHb.checked = state.enHeartbeat; DOM.volHb.value = state.volHeartbeat * 100;
+                DOM.uiMasterVol.value = state.masterVolume * 100; document.getElementById('val-master-vol').innerText = (state.masterVolume*100)+'%';
+                
+                DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; 
+                DOM.uiClockSize.value = state.clockSize; document.getElementById('val-clock-size').innerText = state.clockSize+'x';
+                DOM.uiClockSeconds.checked = state.clockSeconds; DOM.uiPrayer.checked = state.showPrayer;
+                DOM.uiAlarmTime.value = state.alarmTime; DOM.uiAlarmActive.checked = state.alarmActive;
+                
+                DOM.uiAutoNight.checked = state.autoNightMode; DOM.uiSleepTimer.value = state.sleepTimer;
+            }
+        };
+
+        function startApp() {
+            AdminCtrl.init();
+            if (window.firebaseDb) StorageCtrl.listenFirebase();
+            else window.addEventListener('firebase-ready', StorageCtrl.listenFirebase);
+        }
+        window.onload = startApp;
+    </script>
+</body>
+</html>
