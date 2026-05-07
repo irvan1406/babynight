@@ -3,164 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Night Projector</title>
+    <title>Baby Night Display</title>
     <style>
-        /* ========================================================
-           1. CSS RESET & GLOBAL STYLES
-           ======================================================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body, html { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: #000; color: #fff; touch-action: none; }
 
-        body, html {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000;
-            color: #fff;
-            touch-action: none; 
-        }
+        /* Layar Utama & Tema */
+        #display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #theme-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden; transition: background 1s ease; }
 
-        /* ========================================================
-           2. DISPLAY LAYER (PROJECTOR VIEW)
-           ======================================================== */
-        #display-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; transition: filter 0.5s ease;
-        }
+        /* Layar Awal (Tap to Start) - Wajib untuk memancing izin Audio Browser */
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        #start-overlay h1 { font-size: 3rem; color: #4facfe; animation: pulse 2s infinite; }
 
-        #theme-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2; overflow: hidden;
-            transition: background 1s ease;
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
 
-        /* Layer Custom Overlay (Media Gambar) */
-        #custom-overlay-layer {
-            position: absolute;
-            top: 5%; right: 5%;
-            z-index: 3;
-            max-width: 30%;
-            text-align: right;
-            pointer-events: none;
-            opacity: 0.8;
-        }
-        #custom-overlay-layer img {
-            max-width: 150px; border-radius: 10px; margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
+        /* Custom Overlay Media (Gambar Kanan Atas) */
+        #custom-overlay-layer { position: absolute; top: 5%; right: 5%; z-index: 3; max-width: 30%; pointer-events: none; opacity: 0.8; }
+        #custom-overlay-layer img { max-width: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 
-        /* Layer Teks Berjalan (Marquee LED) */
-        #marquee-layer {
-            position: absolute;
-            bottom: 120px; /* Di atas layer sholat */
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
-            z-index: 3;
-            pointer-events: none;
-        }
-        .marquee-text {
-            display: inline-block;
-            padding-left: 100%;
-            animation: marquee linear infinite;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.9);
-            font-family: 'Segoe UI', sans-serif;
-        }
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
+        /* Layer Teks LED Berjalan (Di bawah) */
+        #marquee-layer { position: absolute; bottom: 120px; width: 100%; overflow: hidden; white-space: nowrap; z-index: 3; pointer-events: none; }
+        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-        /* Layer Nama Bayi */
-        #baby-name-layer {
-            position: absolute;
-            top: 12%; width: 100%; text-align: center;
-            z-index: 3; font-size: 2.5rem; font-weight: 300; letter-spacing: 5px;
-            opacity: 0.6; animation: floatName 10s infinite ease-in-out;
-            text-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none;
-        }
+        /* Nama Bayi */
+        #baby-name-layer { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 3; font-size: 2.5rem; letter-spacing: 5px; opacity: 0.8; animation: floatName 10s infinite ease-in-out; text-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; }
+        @keyframes floatName { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        @keyframes floatName {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
-            50% { transform: translateY(-20px) scale(1.05); opacity: 0.9; }
-        }
+        /* Al-Quran (Tampil Per Ayat - Posisi Atas/Tengah) */
+        #quran-layer { position: absolute; top: 20%; left: 10%; width: 80%; height: 30%; text-align: center; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffd700; transition: opacity 0.5s ease; text-shadow: 0 0 15px rgba(0,0,0,0.9); pointer-events: none; }
+        .quran-ayah-text { margin-bottom: 15px; line-height: 1.6; }
+        .quran-translation { font-size: 1.2rem; color: #fff; opacity: 0.9; font-family: 'Segoe UI', sans-serif; }
 
-        /* Layer Al-Quran Per Ayat */
-        #quran-layer {
-            position: absolute;
-            top: 25%; left: 10%; width: 80%; height: 20%;
-            text-align: center; z-index: 3;
-            opacity: 0; /* Animasi fade masuk/keluar diatur oleh JS */
-            text-shadow: 0 0 15px rgba(255,255,255,0.8);
-            pointer-events: none; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: #ffd700;
-            transition: opacity 1s ease;
-        }
-        .quran-ayah-text { margin-bottom: 10px; line-height: 1.6; }
-        .quran-translation { font-size: 1rem; color: #fff; opacity: 0.8; font-family: 'Segoe UI', sans-serif; }
+        /* Jam Digital / Analog (Posisi Agak Bawah agar tidak menabrak Quran) */
+        #clock-layer { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); z-index: 3; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none; width: 100vw; display: flex; flex-direction: column; align-items: center; }
+        .clock-digital { font-size: 8rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-variant-numeric: tabular-nums; text-align: center; transition: transform 0.3s ease, color 0.3s ease; }
+        .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; text-align: center; transition: transform 0.3s ease; }
+        
+        .clock-analog { width: 300px; height: 300px; border: 5px solid rgba(255,255,255,0.3); border-radius: 50%; position: relative; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); margin: 0 auto 20px auto; transition: transform 0.3s ease; }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: #fff; border-radius: 10px; transform: translateX(-50%); }
+        .hand-hour { width: 6px; height: 80px; background: rgba(255,255,255,0.8); }
+        .hand-minute { width: 4px; height: 120px; background: #fff; }
+        .hand-second { width: 2px; height: 140px; background: #ff4757; }
+        .analog-center { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; background: #ff4757; border-radius: 50%; transform: translate(-50%, -50%); }
 
-        /* Layer Jam */
-        #clock-layer {
-            position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 3; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            pointer-events: none;
-            /* Container lebar tetap agar tidak goyang (stabil) */
-            width: 80vw; display: flex; flex-direction: column; align-items: center;
-        }
-
-        #prayer-layer {
-            position: absolute;
-            bottom: 40px; left: 50%; transform: translateX(-50%);
-            z-index: 3; display: flex; gap: 20px;
-            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
-            padding: 15px 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            pointer-events: none; transition: opacity 1s ease;
-        }
-
+        /* Jadwal Sholat & Countdown */
+        #prayer-layer { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; gap: 20px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); padding: 15px 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); pointer-events: none; transition: opacity 0.5s ease; }
         .prayer-item { text-align: center; }
         .prayer-name { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
         .prayer-time { font-size: 1.2rem; font-weight: bold; }
+        
+        #countdown-layer { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 1.2rem; color: #4facfe; background: rgba(0,0,0,0.5); padding: 5px 20px; border-radius: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,0,0,0.8); display: none; }
 
-        #sleep-timer-display {
-            position: absolute; top: 20px; right: 20px; z-index: 3;
-            font-size: 1.2rem; background: rgba(0,0,0,0.5);
-            padding: 5px 15px; border-radius: 20px; display: none;
-        }
+        /* Overlay Adzan Glow Emas */
+        #adzan-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 8; background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(0,0,0,0) 80%); opacity: 0; pointer-events: none; transition: opacity 2s ease; }
+        .adzan-active { opacity: 1 !important; animation: adzanPulse 3s infinite alternate; }
+        @keyframes adzanPulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* Overlay Gelap */
-        #brightness-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0); z-index: 10; pointer-events: none;
-            transition: background-color 0.5s ease;
-        }
-
-        /* Tombol Matikan Alarm di Layar Utama */
-        #display-stop-alarm {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 200; padding: 20px 40px; font-size: 2rem; font-weight: bold;
-            background: #ff4757; color: white; border: none; border-radius: 20px;
-            cursor: pointer; box-shadow: 0 10px 30px rgba(255,0,0,0.5);
-            display: none; animation: pulse 1s infinite;
-        }
-        @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } 100% { transform: translate(-50%, -50%) scale(1); } }
-
+        /* Overlay Kecerahan & Alarm */
+        #brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 10; pointer-events: none; transition: background-color 0.5s ease; }
         .alarm-flash { animation: flashRed 1s infinite alternate; }
-        @keyframes flashRed { 0% { background-color: rgba(255, 0, 0, 0); } 100% { background-color: rgba(255, 0, 0, 0.5); } }
+        @keyframes flashRed { 0% { background-color: rgba(255, 0, 0, 0); } 100% { background-color: rgba(255, 0, 0, 0.6); } }
 
-        /* ========================================================
-           3. THEMES CSS LENGKAP (> 10 TEMA)
-           ======================================================== */
+        /* Tombol Matikan Alarm / Adzan di Layar */
+        #display-stop-alarm { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; padding: 20px 40px; font-size: 2rem; font-weight: bold; background: #ff4757; color: white; border: none; border-radius: 20px; cursor: pointer; display: none; animation: pulseBtn 1s infinite; }
+        @keyframes pulseBtn { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
+
+        /* Tema CSS */
         .theme-night-sky { background: linear-gradient(to bottom, #020111 0%, #20124d 100%); }
         .theme-ocean { background: linear-gradient(to bottom, #001f3f 0%, #001122 100%); }
         .theme-forest { background: linear-gradient(to bottom, #001a00 0%, #000d00 100%); }
@@ -173,10 +83,8 @@
         .theme-underwater { background: linear-gradient(to bottom, #00416a 0%, #000000 100%); }
         .theme-clouds { background: linear-gradient(to bottom, #1e3c72 0%, #2a5298 100%); }
         .theme-matrix { background: #000; }
-
         @keyframes bgShift { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
-        /* Partikel Tema CSS */
         .particle { position: absolute; border-radius: 50%; }
         .p-star { background: #fff; animation: twinkle infinite ease-in-out; }
         .p-firefly { background: #ccff00; box-shadow: 0 0 10px 2px #ccff00; animation: float infinite ease-in-out; }
@@ -194,173 +102,46 @@
         @keyframes rise { 0% { transform: translateY(110vh) scale(1); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
         @keyframes drift { 0% { transform: translateX(-20vw); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translateX(120vw); opacity: 0; } }
 
-        .wave {
-            position: absolute; bottom: 0; width: 200%; height: 300px;
-            background: rgba(0, 119, 255, 0.1); border-radius: 40%;
-            animation: wave-move 10s infinite linear; filter: blur(10px);
-        }
+        .wave { position: absolute; bottom: 0; width: 200%; height: 300px; background: rgba(0, 119, 255, 0.1); border-radius: 40%; animation: wave-move 10s infinite linear; filter: blur(10px); }
         .wave:nth-child(2) { bottom: -50px; background: rgba(0, 119, 255, 0.15); animation-duration: 15s; animation-direction: reverse; }
         @keyframes wave-move { 0% { transform: translateX(0) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         .performance-mode .wave { filter: none; }
         .performance-mode .particle { filter: none; box-shadow: none; }
-
-        /* ========================================================
-           4. CLOCK STYLES (STABILISASI & FONT)
-           ======================================================== */
-        .clock-digital {
-            font-size: 8rem; font-weight: bold; letter-spacing: 2px;
-            margin-bottom: 10px; transition: color 0.3s ease, font-family 0.3s ease, transform 0.3s ease;
-            font-variant-numeric: tabular-nums; 
-            text-align: center; width: 100%;
-        }
-        .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; width: 100%; text-align: center; transition: transform 0.3s ease; }
-        .clock-analog {
-            width: 300px; height: 300px; border: 5px solid rgba(255,255,255,0.3); border-radius: 50%;
-            position: relative; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); margin: 0 auto 20px auto;
-            transition: transform 0.3s ease;
-        }
-        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: #fff; border-radius: 10px; transform: translateX(-50%); }
-        .hand-hour { width: 6px; height: 80px; background: rgba(255,255,255,0.8); }
-        .hand-minute { width: 4px; height: 120px; background: #fff; }
-        .hand-second { width: 2px; height: 140px; background: #ff4757; }
-        .analog-center { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; background: #ff4757; border-radius: 50%; transform: translate(-50%, -50%); }
-
-        /* ========================================================
-           5. ELEGAN ADMIN LAYER UI & TABS
-           ======================================================== */
-        #secret-trigger { position: absolute; top: 0; left: 0; width: 100px; height: 100px; z-index: 100; cursor: pointer; }
-
-        /* Admin Panel Modern Redesign */
-        #admin-panel {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(20, 20, 30, 0.85); backdrop-filter: blur(25px);
-            border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
-            width: 95%; max-width: 600px; max-height: 90vh;
-            display: none; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            z-index: 101; overflow: hidden;
-        }
-
-        .admin-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);
-        }
-        .admin-header h2 { font-size: 1.3rem; color: #4facfe; letter-spacing: 1px; }
-        .close-btn { background: none; border: none; color: #ff4757; font-size: 2rem; cursor: pointer; line-height: 1; }
-
-        /* Sistem Tab Navigation */
-        .admin-tabs {
-            display: flex; overflow-x: auto; background: rgba(0,0,0,0.5);
-            padding: 10px 10px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .admin-tabs::-webkit-scrollbar { height: 4px; }
-        .admin-tabs::-webkit-scrollbar-thumb { background: #4facfe; border-radius: 10px; }
-        .tab-btn {
-            background: none; border: none; color: #aaa; padding: 10px 15px;
-            cursor: pointer; font-size: 0.9rem; font-weight: bold; white-space: nowrap;
-            border-bottom: 3px solid transparent; transition: 0.3s;
-        }
-        .tab-btn.active { color: #4facfe; border-bottom: 3px solid #4facfe; }
-
-        .admin-content { padding: 20px; overflow-y: auto; flex: 1; }
-        .admin-content::-webkit-scrollbar { width: 6px; }
-        .admin-content::-webkit-scrollbar-track { background: transparent;}
-        .admin-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-
-        .admin-section { display: none; animation: fadeIn 0.3s ease; }
-        .admin-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .form-group { margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: #ddd; font-weight: 500;}
-        .form-group-flex { display: flex; align-items: center; justify-content: space-between; gap:10px; margin-bottom: 10px;}
-        
-        select, input[type="range"], input[type="text"], input[type="number"], input[type="color"], input[type="file"], input[type="time"] {
-            width: 100%; padding: 10px; background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; outline: none; transition: 0.3s;
-        }
-        select:focus, input[type="text"]:focus { border-color: #4facfe; }
-        input[type="color"] { padding: 2px; height: 40px; cursor: pointer; }
-        select option { background: #1a1a24; }
-        
-        .checkbox-group { display: flex; align-items: center; gap: 10px; }
-        .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #4facfe; }
-        .checkbox-group label { margin: 0; cursor: pointer; }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem;}
-        .btn-primary { background: linear-gradient(45deg, #4facfe, #00f2fe); color: #000; }
-        .btn-primary:hover { opacity: 0.8; }
-        .btn-danger { background: #ff4757; color: white; }
-        .btn-warning { background: #ffd700; color: #000; }
-        .btn-success { background: #2ed573; color: #000; }
-
-        .slider-val { font-size: 0.8rem; color: #4facfe; float: right; font-weight: bold; background: rgba(79, 172, 254, 0.2); padding: 2px 8px; border-radius: 10px;}
     </style>
 </head>
 <body>
+    <!-- Overlay Pemancing Interaksi (Wajib untuk Audio Autoplay) -->
+    <div id="start-overlay">
+        <h1>👆 TAP UNTUK MEMULAI PROYEKTOR</h1>
+        <p>Aplikasi butuh izin untuk memutar Audio & Layar Penuh</p>
+    </div>
 
-    <!-- MENGINISIALISASI FIREBASE SDK (ES MODULES - STABIL & MODERN) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Konfigurasi Baru
-        const firebaseConfig = {
-          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
-          authDomain: "bbynight-d2bb0.firebaseapp.com",
-          projectId: "bbynight-d2bb0",
-          storageBucket: "bbynight-d2bb0.firebasestorage.app",
-          messagingSenderId: "169917444760",
-          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
-          measurementId: "G-3CQQWZE5QB"
-        };
-
-        try {
-            const app = initializeApp(firebaseConfig);
-            window.firebaseDb = getFirestore(app);
-            window.firebaseDoc = doc;
-            window.firebaseSetDoc = setDoc;
-            window.firebaseOnSnapshot = onSnapshot;
-            window.dispatchEvent(new Event('firebase-ready'));
-        } catch (e) {
-            console.error("Gagal menginisialisasi Firebase:", e);
-        }
-    </script>
-
-    <!-- 1. AREA PEMICU RAHASIA UNTUK ADMIN -->
-    <div id="secret-trigger" title="Tap 5x cepat di sini untuk Admin Mode"></div>
-
-    <!-- 3. TOMBOL MATIKAN ALARM DI LAYAR (MUNCUL SAAT BUNYI) -->
-    <button id="display-stop-alarm">MATIKAN ALARM</button>
-
-    <!-- LAYER PENURUN KECERAHAN & ALARM FLASH -->
+    <div id="adzan-glow"></div>
     <div id="brightness-overlay"></div>
+    <button id="display-stop-alarm">MATIKAN ALARM / ADZAN</button>
 
-    <!-- YOUTUBE PLAYER CONTAINER (HIDDEN) -->
     <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px;"></div>
+    <!-- Audio Murattal Islami & Adzan -->
+    <audio id="murattal-audio"></audio>
+    <audio id="adzan-audio" src="https://www.islamcan.com/audio/adhan/azan1.mp3"></audio>
 
-    <!-- 4. TAMPILAN UTAMA (PROYEKTOR) -->
     <div id="display-container">
         <div id="theme-layer"></div>
         <div id="baby-name-layer" style="display:none;"></div>
         
-        <!-- CUSTOM OVERLAY MEDIA/TEKS -->
-        <div id="custom-overlay-layer">
-            <img id="overlay-img-render" style="display:none;" src="" alt="Overlay Image">
-        </div>
-        
-        <!-- CUSTOM OVERLAY LED TEXT (BERJALAN) -->
-        <div id="marquee-layer" style="display:none;">
-            <div id="overlay-text-render" class="marquee-text"></div>
-        </div>
+        <div id="custom-overlay-layer"><img id="overlay-img-render" style="display:none;" src=""></div>
+        <div id="marquee-layer" style="display:none;"><div id="overlay-text-render" class="marquee-text"></div></div>
 
+        <!-- Teks Al-Quran Per Ayat (Dibuat Stabil di Tengah Atas) -->
         <div id="quran-layer"></div>
-        <div id="sleep-timer-display"></div>
         
+        <!-- Jam (Stabil di Tengah Bawah) -->
         <div id="clock-layer">
             <div id="clock-render-area"></div>
             <div id="date-display" class="clock-date"></div>
         </div>
+
+        <div id="countdown-layer"></div>
 
         <div id="prayer-layer">
             <div class="prayer-item"><div class="prayer-name">Subuh</div><div class="prayer-time" id="pray-Fajr">--:--</div></div>
@@ -371,351 +152,157 @@
         </div>
     </div>
 
-    <audio id="custom-audio-player" loop></audio>
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 
-    <!-- 5. PANEL ADMIN (DESAIN ELEGAN DENGAN TABS) -->
-    <div id="admin-panel">
-        <div class="admin-header">
-            <h2>✨ Baby Control Hub</h2>
-            <button class="close-btn" id="btn-close-admin">×</button>
-        </div>
-
-        <div class="admin-tabs">
-            <button class="tab-btn active" data-target="sec-visual">🎨 Visuals</button>
-            <button class="tab-btn" data-target="sec-text">✍️ Teks LED & Media</button>
-            <button class="tab-btn" data-target="sec-audio">🎵 Audio & YT</button>
-            <button class="tab-btn" data-target="sec-quran">📖 Quran</button>
-            <button class="tab-btn" data-target="sec-time">🕰️ Time & Alarm</button>
-            <button class="tab-btn" data-target="sec-sys">⚙️ System</button>
-        </div>
-
-        <div class="admin-content">
-            
-            <!-- SECTION 1: VISUALS -->
-            <div id="sec-visual" class="admin-section active">
-                <div class="form-group">
-                    <label>Tema Latar (12 Pilihan)</label>
-                    <select id="set-theme">
-                        <option value="night-sky">🌌 Night Sky (Bintang Klasik)</option>
-                        <option value="ocean">🌊 Ocean (Ombak Laut)</option>
-                        <option value="forest">🌲 Forest (Hutan Kunang-kunang)</option>
-                        <option value="sunset">🌅 Sunset (Senja Jingga)</option>
-                        <option value="aurora">🎇 Aurora Borealis (Ungu Hijau)</option>
-                        <option value="galaxy">🪐 Deep Galaxy</option>
-                        <option value="rain">🌧️ Rain (Hujan Turun)</option>
-                        <option value="snow">❄️ Snow (Salju Lembut)</option>
-                        <option value="fire">🔥 Campfire (Percikan Api)</option>
-                        <option value="underwater">🐡 Underwater (Gelembung Biru)</option>
-                        <option value="clouds">☁️ Moving Clouds (Awan Berjalan)</option>
-                        <option value="matrix">💻 The Matrix (Teks Hijau)</option>
-                        <option value="custom">🛠️ Custom Editor (Warna Sendiri)</option>
-                        <option value="blank">⬛ Blank (Hitam Polos)</option>
-                    </select>
-                </div>
-                
-                <div id="custom-theme-editor" style="display:none; padding-top: 10px;">
-                    <div class="form-group-flex">
-                        <div style="flex:1"><label>Gradient Atas</label><input type="color" id="set-bg1"></div>
-                        <div style="flex:1"><label>Gradient Bawah</label><input type="color" id="set-bg2"></div>
-                        <div style="flex:1"><label>Partikel</label><input type="color" id="set-pcolor"></div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Kecerahan (Redup) <span class="slider-val" id="val-brightness">0% Dark</span></label>
-                    <input type="range" id="set-brightness" min="0" max="95" value="0">
-                </div>
-                <div class="form-group">
-                    <label>Kepadatan Partikel <span class="slider-val" id="val-particle">60</span></label>
-                    <input type="range" id="set-particle" min="0" max="200" value="60">
-                </div>
-                <div class="form-group">
-                    <label>Kecepatan Animasi <span class="slider-val" id="val-speed">1x</span></label>
-                    <input type="range" id="set-speed" min="0.1" max="3" step="0.1" value="1">
-                </div>
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="set-performance">
-                    <label for="set-performance">Mode Hemat Baterai / TV Low-end</label>
-                </div>
-            </div>
-
-            <!-- SECTION 2: TEKS & MEDIA (NAMA, CUSTOM OVERLAY) -->
-            <div id="sec-text" class="admin-section">
-                <div class="form-group">
-                    <label>Tampilkan Nama Bayi (Melayang)</label>
-                    <input type="text" id="set-baby-name" placeholder="Ketik nama bayi...">
-                    <div class="form-group-flex" style="margin-top:10px;">
-                        <div style="flex:2">
-                            <select id="set-baby-font">
-                                <option value="'Segoe UI', sans-serif">Modern (Segoe UI)</option>
-                                <option value="Arial, sans-serif">Basic (Arial)</option>
-                                <option value="'Courier New', monospace">Monospace (Courier)</option>
-                                <option value="'Comic Sans MS', cursive">Kids (Comic Sans)</option>
-                                <option value="'Times New Roman', serif">Classic (Times NR)</option>
-                                <option value="Impact, fantasy">Bold (Impact)</option>
-                                <option value="'Trebuchet MS', sans-serif">Clean (Trebuchet)</option>
-                                <option value="'Georgia', serif">Elegant (Georgia)</option>
-                                <option value="'Palatino', serif">Royal (Palatino)</option>
-                                <option value="'Brush Script MT', cursive">Handwriting (Brush)</option>
-                                <option value="'Lucida Sans', sans-serif">Soft (Lucida)</option>
-                            </select>
-                        </div>
-                        <div style="flex:1"><input type="color" id="set-baby-color" value="#ffffff"></div>
-                    </div>
-                </div>
-
-                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <label>Teks LED Berjalan di Bawah (Marquee)</label>
-                    <input type="text" id="set-overlay-text" placeholder="Misal: Selamat malam semuanya...">
-                </div>
-                <div class="form-group">
-                    <label>Custom Overlay Media Pojok Kanan (Link Gambar/GIF)</label>
-                    <input type="text" id="set-overlay-img" placeholder="https://domain.com/gambar.gif">
-                </div>
-            </div>
-
-            <!-- SECTION 3: AUDIO & YOUTUBE -->
-            <div id="sec-audio" class="admin-section">
-                <div class="form-group">
-                    <label>YouTube Player (ID Video)</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="set-yt-id" placeholder="Misal: dQw4w9WgXcQ">
-                        <button class="btn btn-primary" id="btn-load-yt" style="width:auto; padding: 10px;">Load</button>
-                    </div>
-                    <div class="btn-group" style="margin-top:5px;">
-                        <button class="btn btn-success" id="btn-yt-play">▶ Play YT</button>
-                        <button class="btn btn-warning" id="btn-yt-pause">⏸ Pause YT</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Upload Audio Offline (MP3/WAV)</label>
-                    <input type="file" id="set-custom-audio" accept="audio/*">
-                    <p id="custom-audio-name" style="font-size:0.75rem; color:#4facfe; margin-top:5px;"></p>
-                </div>
-
-                <div class="form-group">
-                    <label>Audio Generator Latar</label>
-                    <div class="checkbox-group" style="margin-bottom:5px;"><input type="checkbox" id="tgl-whitenoise"> <label>White Noise</label></div>
-                    <input type="range" id="vol-whitenoise" min="0" max="100" value="50">
-                    <div class="checkbox-group" style="margin:10px 0 5px 0;"><input type="checkbox" id="tgl-ocean"> <label>Ocean Waves</label></div>
-                    <input type="range" id="vol-ocean" min="0" max="100" value="50">
-                    <div class="checkbox-group" style="margin:10px 0 5px 0;"><input type="checkbox" id="tgl-heartbeat"> <label>Detak Jantung</label></div>
-                    <input type="range" id="vol-heartbeat" min="0" max="100" value="80">
-                </div>
-
-                <div class="form-group" style="background: rgba(46, 213, 115, 0.1);">
-                    <label style="color:#2ed573;">Master Audio Volume <span class="slider-val" id="val-master-vol" style="background:none;">30%</span></label>
-                    <input type="range" id="set-master-volume" min="0" max="100" value="30">
-                    <div class="btn-group">
-                        <button class="btn btn-success" id="btn-play-audio">▶ Play Synth/Upload</button>
-                        <button class="btn btn-danger" id="btn-stop-audio">■ Stop All</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 4: QURAN PER AYAT -->
-            <div id="sec-quran" class="admin-section">
-                <div class="form-group">
-                    <label>Tampilan Al-Quran (Per Ayat / Lirik)</label>
-                    <div class="form-group-flex">
-                        <input type="number" id="set-quran-surah" min="1" max="114" placeholder="Nomor Surat (1-114)" value="1" style="flex:2">
-                        <div class="checkbox-group" style="flex:1; justify-content:center;">
-                            <input type="checkbox" id="set-show-quran"> <label>Aktif</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group-flex">
-                    <div style="flex:1;">
-                        <label>Ukuran Font</label>
-                        <select id="set-quran-size">
-                            <option value="1.5">Kecil</option>
-                            <option value="2" selected>Sedang</option>
-                            <option value="3">Besar</option>
-                            <option value="4">Sangat Besar</option>
-                        </select>
-                    </div>
-                    <div style="flex:1;">
-                        <label>Gaya Font</label>
-                        <select id="set-quran-font">
-                            <option value="'Amiri', serif">Arabic Amiri</option>
-                            <option value="'Traditional Arabic', serif">Traditional</option>
-                            <option value="'Segoe UI', sans-serif">Modern</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Durasi Tampil Per Huruf (Kecepatan Transisi) <span class="slider-val" id="val-quran-speed">100ms</span></label>
-                    <input type="range" id="set-quran-speed" min="30" max="200" step="10" value="100">
-                    <p style="font-size:0.7rem; color:#aaa; margin-top:5px;">Semakin kecil = makin cepat berganti ayat.</p>
-                </div>
-            </div>
-
-            <!-- SECTION 5: WAKTU & ALARM -->
-            <div id="sec-time" class="admin-section">
-                <div class="form-group">
-                    <label>Mode Jam Utama</label>
-                    <div class="form-group-flex">
-                        <select id="set-clock" style="flex:2">
-                            <option value="digital">Digital Clock (Stabil)</option>
-                            <option value="analog">Analog Clock</option>
-                            <option value="hidden">Sembunyikan Jam</option>
-                        </select>
-                        <input type="color" id="set-clock-color" value="#ffffff" style="flex:1">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="form-group-flex">
-                        <select id="set-clock-font" style="flex:2">
-                            <option value="'Segoe UI', Tahoma, sans-serif">Modern (Segoe UI)</option>
-                            <option value="'Courier New', Courier, monospace">Digital Mono</option>
-                            <option value="'Comic Sans MS', cursive, sans-serif">Playful Kids</option>
-                            <option value="'Times New Roman', Times, serif">Classic Serif</option>
-                        </select>
-                        <div class="checkbox-group" style="flex:1; justify-content:center;">
-                            <input type="checkbox" id="set-prayer" checked> <label>Sholat</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Ukuran Jam <span class="slider-val" id="val-clock-size">1x</span></label>
-                    <input type="range" id="set-clock-size" min="0.5" max="3" step="0.1" value="1">
-                </div>
-
-                <div class="checkbox-group" style="margin-top: 10px; margin-bottom: 20px;">
-                    <input type="checkbox" id="set-clock-seconds" checked>
-                    <label for="set-clock-seconds">Tampilkan Detik (Jam Utama)</label>
-                </div>
-
-                <button class="btn btn-warning" id="btn-geo" style="width:100%; margin-top:10px;">📍 Auto-Detect Lokasi Sholat (GPS)</button>
-
-                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; margin-top: 20px;">
-                    <label>Sistem Alarm & Bangun</label>
-                    <div class="form-group-flex">
-                        <input type="time" id="set-alarm-time" style="flex:1">
-                        <div class="checkbox-group" style="flex:1; justify-content:center;">
-                            <input type="checkbox" id="set-alarm-active"> <label>ON</label>
-                        </div>
-                    </div>
-                    <button class="btn btn-danger" id="btn-stop-alarm" style="width:100%; display:none; margin-top:10px;">🔕 MATIKAN ALARM SEKARANG</button>
-                </div>
-            </div>
-
-            <!-- SECTION 6: SYSTEM & AUTO -->
-            <div id="sec-sys" class="admin-section">
-                <div class="form-group">
-                    <label>Otomatisasi Cerdas</label>
-                    <div class="checkbox-group" style="margin-bottom:10px;">
-                        <input type="checkbox" id="set-auto-night">
-                        <label>Smart Auto Mode (Otomatis Redup Pukul 18:00 - 05:59)</label>
-                    </div>
-                    <div class="form-group-flex">
-                        <select id="set-preset" style="flex:2">
-                            <option value="custom">-- Load Preset --</option>
-                            <option value="newborn">👶 Newborn</option>
-                            <option value="deepsleep">💤 Deep Sleep</option>
-                            <option value="calm">🌊 Calm Mode</option>
-                        </select>
-                        <button class="btn btn-primary" id="btn-apply-preset" style="flex:1;">Apply</button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Sleep Timer (Mati Otomatis)</label>
-                    <select id="set-sleep-timer">
-                        <option value="0">Off (Menyala Terus)</option>
-                        <option value="15">15 Menit</option>
-                        <option value="30">30 Menit</option>
-                        <option value="60">1 Jam</option>
-                        <option value="120">2 Jam</option>
-                    </select>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-success" id="btn-save-state">💾 Save Data</button>
-                    <button class="btn btn-danger" id="btn-reset-state">🔄 Reset</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ========================================================
-         6. JAVASCRIPT MODULAR LOGIC
-         ======================================================== -->
     <script>
-        const defaultState = {
+        const firebaseConfig = {
+          apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
+          authDomain: "bbynight-d2bb0.firebaseapp.com",
+          projectId: "bbynight-d2bb0",
+          storageBucket: "bbynight-d2bb0.firebasestorage.app",
+          messagingSenderId: "169917444760",
+          appId: "1:169917444760:web:a262cf1f873539eafa96ed",
+          measurementId: "G-3CQQWZE5QB"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // State Global (Hanya Menerima dari Admin)
+        let state = {
             theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
-            clockSize: 1, clockSeconds: true,
-            showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
+            clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false,
             particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
-            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5,
-            enHeartbeat: false, volHeartbeat: 0.8, useCustomAudio: false, ytVideoId: '', ytPlayState: false,
+            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8,
+            ytVideoId: '', ytPlayState: false,
             quranSurah: '1', showQuran: false, quranSize: 2, quranFont: "'Amiri', serif", quranSpeed: 100,
+            islamiPlayState: false, islamiSurah: '1', showAdzan: true,
             alarmTime: '', alarmActive: false, isAlarmRinging: false, lat: -6.2088, lng: 106.8456, 
             babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff",
             overlayText: '', overlayImg: '', performanceMode: false
         };
 
-        let state = { ...defaultState };
-        let firebaseSyncTimeout = null;
-        let firebaseErrorAlerted = false;
-
-        const StorageCtrl = {
-            save: async (silent = true) => {
-                localStorage.setItem('babyProjectorState', JSON.stringify(state));
-                
-                if (window.firebaseDb) {
-                    clearTimeout(firebaseSyncTimeout);
-                    firebaseSyncTimeout = setTimeout(async () => {
-                        try {
-                            const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
-                            await window.firebaseSetDoc(docRef, state);
-                        } catch (e) {
-                            if (!firebaseErrorAlerted) { console.error("FIRESTORE GAGAL DISIMPAN", e); firebaseErrorAlerted = true; }
-                        }
-                    }, 400); 
-                }
-                
-                if (!silent) alert("Tersimpan di LocalStorage & Firebase!");
-            },
-            load: () => {
-                const saved = localStorage.getItem('babyProjectorState');
-                if (saved) Object.assign(state, defaultState, JSON.parse(saved));
-            },
-            listenFirebase: () => {
-                if (window.firebaseDb) {
-                    const docRef = window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state");
-                    window.firebaseOnSnapshot(docRef, (docSnap) => {
-                        const data = docSnap.data(); 
-                        if (data) {
-                            Object.assign(state, data); 
-                            AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
-                            if(state.showQuran && QuranCtrl.currentSurahRendered !== state.quranSurah) QuranCtrl.fetchAndRender();
-                            else if (!state.showQuran) QuranCtrl.stop();
-                            
-                            if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-                                if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
-                            }
-                            
-                            if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
-                            else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
-                        }
-                    }, (error) => {
-                        console.error("Firebase Snapshot Error:", error);
-                    });
-                }
-            },
-            reset: () => { if(confirm("Reset ke default?")) { localStorage.removeItem('babyProjectorState'); Object.assign(state, defaultState); StorageCtrl.save(true); location.reload(); } }
+        const DOM = {
+            startOverlay: document.getElementById('start-overlay'),
+            btnDisplayStopAlarm: document.getElementById('display-stop-alarm'),
+            layerTheme: document.getElementById('theme-layer'), layerClockArea: document.getElementById('clock-render-area'), layerDate: document.getElementById('date-display'),
+            layerPrayer: document.getElementById('prayer-layer'), layerOverlay: document.getElementById('brightness-overlay'),
+            layerBabyName: document.getElementById('baby-name-layer'), layerOverlayImg: document.getElementById('overlay-img-render'), layerOverlayTxt: document.getElementById('overlay-text-render'),
+            layerMarquee: document.getElementById('marquee-layer'), layerQuran: document.getElementById('quran-layer'), layerAdzanGlow: document.getElementById('adzan-glow'),
+            layerCountdown: document.getElementById('countdown-layer'),
+            murattalAudio: document.getElementById('murattal-audio'), adzanAudio: document.getElementById('adzan-audio')
         };
 
-        const Presets = {
-            newborn: { theme: 'night-sky', brightness: 20, enWhiteNoise: true, enOcean: false, enHeartbeat: true, masterVolume: 0.4, particleCount: 80 },
-            deepsleep: { theme: 'blank', brightness: 80, enWhiteNoise: false, enOcean: false, enHeartbeat: false, masterVolume: 0.1, particleCount: 0 },
-            calm: { theme: 'ocean', brightness: 40, enWhiteNoise: false, enOcean: true, enHeartbeat: false, masterVolume: 0.3, particleCount: 0 }
+        let prayerTimesData = null; // Menyimpan data sholat hari ini
+
+        // ==========================================
+        // FITUR ISLAMI (ROTASI AYAT & MURATTAL SYNC)
+        // ==========================================
+        const IslamicCtrl = {
+            ayahs: [], currentIdx: 0, isPlaying: false, currentSurahRendered: '',
+            
+            fetchAndPlay: async () => {
+                if (!state.islamiPlayState) { IslamicCtrl.stop(); return; }
+                if (IslamicCtrl.currentSurahRendered === state.islamiSurah && IslamicCtrl.isPlaying) return; // Mencegah fetch berulang
+                
+                IslamicCtrl.stop();
+                IslamicCtrl.isPlaying = true;
+                DOM.layerQuran.style.opacity = 1; 
+                DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
+                
+                try {
+                    // Fetch teks dan audio murattal (Mishary Rashid Alafasy) dari API
+                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`);
+                    const data = await res.json();
+                    if(data.code === 200) {
+                        IslamicCtrl.ayahs = data.data.ayahs;
+                        IslamicCtrl.currentIdx = 0;
+                        IslamicCtrl.currentSurahRendered = state.islamiSurah;
+                        IslamicCtrl.playAyah();
+                    }
+                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Koneksi API Al-Quran Gagal.</div>'; }
+            },
+            
+            playAyah: () => {
+                if(!state.islamiPlayState || IslamicCtrl.ayahs.length === 0) return;
+                
+                // Auto Repeat jika surah habis
+                if(IslamicCtrl.currentIdx >= IslamicCtrl.ayahs.length) IslamicCtrl.currentIdx = 0; 
+                
+                const ayahObj = IslamicCtrl.ayahs[IslamicCtrl.currentIdx];
+                
+                // Tampilkan Teks
+                DOM.layerQuran.style.opacity = 0; 
+                setTimeout(() => {
+                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
+                    DOM.layerQuran.style.opacity = 1; 
+                    
+                    // Mainkan Audio yang tersinkron dengan ayat ini
+                    DOM.murattalAudio.src = ayahObj.audio;
+                    DOM.murattalAudio.volume = state.masterVolume;
+                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser"));
+                    
+                    // Lanjut ke ayat berikutnya setelah audio ayat ini selesai! (Perfect Sync)
+                    DOM.murattalAudio.onended = () => {
+                        IslamicCtrl.currentIdx++;
+                        IslamicCtrl.playAyah();
+                    };
+                }, 500);
+            },
+            
+            stop: () => { 
+                IslamicCtrl.isPlaying = false; 
+                DOM.murattalAudio.pause(); 
+                DOM.layerQuran.innerHTML = ''; 
+                DOM.layerQuran.style.opacity = 0; 
+                IslamicCtrl.currentSurahRendered = '';
+            }
         };
 
+        // ==========================================
+        // QURAN TEKS SAJA (Tanpa Suara - Sesuai Kecepatan User)
+        // ==========================================
+        const QuranTextCtrl = {
+            ayahs: [], currentIdx: 0, timer: null, currentSurahRendered: '',
+            fetchAndRender: async () => {
+                QuranTextCtrl.stop();
+                if (!state.showQuran || state.islamiPlayState) return; // Jangan bentrok dengan mode Islami Audio
+                
+                DOM.layerQuran.style.opacity = 1; DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Teks Ayat...</div>';
+                try {
+                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
+                    const data = await res.json();
+                    if(data.code === 200) {
+                        QuranTextCtrl.ayahs = data.data.ayahs;
+                        QuranTextCtrl.currentIdx = 0;
+                        QuranTextCtrl.currentSurahRendered = state.quranSurah;
+                        QuranTextCtrl.loopAyah();
+                    }
+                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Gagal memuat teks.</div>'; }
+            },
+            loopAyah: () => {
+                if(!state.showQuran || state.islamiPlayState || QuranTextCtrl.ayahs.length === 0) return;
+                if(QuranTextCtrl.currentIdx >= QuranTextCtrl.ayahs.length) QuranTextCtrl.currentIdx = 0; 
+                
+                const ayahObj = QuranTextCtrl.ayahs[QuranTextCtrl.currentIdx];
+                DOM.layerQuran.style.opacity = 0; 
+                setTimeout(() => {
+                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
+                    DOM.layerQuran.style.opacity = 1; 
+                    
+                    // Hitung durasi berdasarkan panjang karakter dikali kecepatan ms (Slider Admin)
+                    const durationMs = (ayahObj.text.length * state.quranSpeed) + 1500; 
+                    QuranTextCtrl.currentIdx++;
+                    QuranTextCtrl.timer = setTimeout(QuranTextCtrl.loopAyah, durationMs);
+                }, 800);
+            },
+            stop: () => { clearTimeout(QuranTextCtrl.timer); if(!state.islamiPlayState){ DOM.layerQuran.innerHTML = ''; DOM.layerQuran.style.opacity = 0; } QuranTextCtrl.currentSurahRendered = ''; }
+        };
+
+        // ==========================================
+        // YOUTUBE & AUDIO ENGINE
+        // ==========================================
         let ytPlayerReady = false; let ytPlayer = null;
         window.onYouTubeIframeAPIReady = () => {
             ytPlayer = new YT.Player('youtube-player', {
@@ -726,55 +313,63 @@
         };
         function loadYouTubeScript() { let tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; let firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag); }
 
-        const QuranCtrl = {
-            ayahs: [], currentAyahIdx: 0, timer: null, currentSurahRendered: '',
-            fetchAndRender: async () => {
-                QuranCtrl.stop();
-                if (!state.showQuran) return;
-                const layer = document.getElementById('quran-layer');
-                layer.style.opacity = 1; layer.innerHTML = '<div style="font-size:1rem;">Memuat Ayat...</div>';
-                try {
-                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        QuranCtrl.ayahs = data.data.ayahs;
-                        QuranCtrl.currentAyahIdx = 0;
-                        QuranCtrl.currentSurahRendered = state.quranSurah;
-                        QuranCtrl.playAyahLoop();
-                    }
-                } catch (e) { layer.innerHTML = '<div style="color:red;">Gagal memuat.</div>'; }
+        const AudioCtrl = {
+            ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
+            initCtx: () => { if (!AudioCtrl.ctx) { AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)(); AudioCtrl.masterGain = AudioCtrl.ctx.createGain(); AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination); } },
+            createWhiteNoise: () => {
+                const bufferSize = AudioCtrl.ctx.sampleRate * 2; const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
+                const output = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                const noise = AudioCtrl.ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+                const filter = AudioCtrl.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; noise.connect(filter);
+                return { src: noise, out: filter };
             },
-            playAyahLoop: () => {
-                if(!state.showQuran || QuranCtrl.ayahs.length === 0) return;
-                const layer = document.getElementById('quran-layer');
-                if(QuranCtrl.currentAyahIdx >= QuranCtrl.ayahs.length) QuranCtrl.currentAyahIdx = 0; 
-                
-                const ayahObj = QuranCtrl.ayahs[QuranCtrl.currentAyahIdx];
-                const text = ayahObj.text;
-                
-                layer.style.opacity = 0; 
-                setTimeout(() => {
-                    layer.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
-                    layer.style.opacity = 1; 
-                    
-                    const duration = (text.length * state.quranSpeed) + 2000; 
-                    QuranCtrl.currentAyahIdx++;
-                    QuranCtrl.timer = setTimeout(QuranCtrl.playAyahLoop, duration);
-                }, 1000);
+            createOcean: () => {
+                const wn = AudioCtrl.createWhiteNoise(); wn.out.frequency.value = 300; 
+                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.08; 
+                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
+                return { src: wn.src, out: lfoGain, extra: lfo };
             },
-            stop: () => { clearTimeout(QuranCtrl.timer); document.getElementById('quran-layer').innerHTML = ''; document.getElementById('quran-layer').style.opacity = 0; }
+            startHeartbeat: (gainNode) => {
+                AudioCtrl.heartbeatInterval = setInterval(() => {
+                    if(AudioCtrl.ctx.state !== 'running') return;
+                    const osc = AudioCtrl.ctx.createOscillator(); const env = AudioCtrl.ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
+                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
+                    osc.connect(env); env.connect(gainNode); osc.start(AudioCtrl.ctx.currentTime); osc.stop(AudioCtrl.ctx.currentTime + 0.7);
+                }, 1200); 
+            },
+            play: () => {
+                AudioCtrl.stop(); 
+                AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
+                AudioCtrl.masterGain.gain.value = state.masterVolume;
+                if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
+                if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
+                if (state.enHeartbeat) { const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volHeartbeat; vol.connect(AudioCtrl.masterGain); AudioCtrl.startHeartbeat(vol); }
+            },
+            stop: () => {
+                Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} });
+                AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval);
+            },
+            updateVolumes: () => {
+                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
+                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
+                DOM.murattalAudio.volume = state.masterVolume;
+                DOM.adzanAudio.volume = state.masterVolume;
+            }
         };
 
+        // ==========================================
+        // ALARM & ADZAN CONTROLLER
+        // ==========================================
         const AlarmCtrl = {
             isRinging: false, ctx: null, osc: null,
             trigger: () => {
                 if(AlarmCtrl.isRinging) return;
                 AlarmCtrl.isRinging = true;
-                state.isAlarmRinging = true; StorageCtrl.save(true);
                 
-                document.getElementById('brightness-overlay').classList.add('alarm-flash');
-                document.getElementById('btn-stop-alarm').style.display = 'block'; 
-                document.getElementById('display-stop-alarm').style.display = 'block'; 
+                DOM.layerOverlay.classList.add('alarm-flash');
+                DOM.btnDisplayStopAlarm.style.display = 'block'; 
+                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ALARM";
 
                 if (!AlarmCtrl.ctx) AlarmCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if(AlarmCtrl.ctx.state === 'suspended') AlarmCtrl.ctx.resume();
@@ -784,48 +379,42 @@
                 const lfo = AlarmCtrl.ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 4; lfo.connect(gain.gain); lfo.start();
                 AlarmCtrl.osc.connect(gain); gain.connect(AlarmCtrl.ctx.destination); AlarmCtrl.osc.start();
             },
+            triggerAdzan: (namaSholat) => {
+                if(AlarmCtrl.isRinging) return; // Mencegah double trigger
+                AlarmCtrl.isRinging = true;
+                
+                // Pause Murattal atau YT saat Adzan
+                if(state.islamiPlayState) DOM.murattalAudio.pause();
+                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.pauseVideo();
+                
+                DOM.layerAdzanGlow.classList.add('adzan-active');
+                DOM.btnDisplayStopAlarm.style.display = 'block';
+                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ADZAN " + namaSholat;
+                
+                DOM.adzanAudio.volume = state.masterVolume;
+                DOM.adzanAudio.play().catch(e=>console.log("Audio diblokir"));
+            },
             stopLocal: () => {
                 AlarmCtrl.isRinging = false;
-                document.getElementById('brightness-overlay').classList.remove('alarm-flash');
-                document.getElementById('btn-stop-alarm').style.display = 'none';
-                document.getElementById('display-stop-alarm').style.display = 'none';
+                DOM.layerOverlay.classList.remove('alarm-flash');
+                DOM.layerAdzanGlow.classList.remove('adzan-active');
+                DOM.btnDisplayStopAlarm.style.display = 'none';
+                
+                DOM.adzanAudio.pause(); DOM.adzanAudio.currentTime = 0;
                 if(AlarmCtrl.osc) { try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){} }
-            },
-            stopGlobal: () => {
-                AlarmCtrl.stopLocal();
-                state.alarmActive = false; state.isAlarmRinging = false;
-                document.getElementById('set-alarm-active').checked = false; StorageCtrl.save(true);
+                
+                // Lanjutkan Murattal jika tadi aktif
+                if(state.islamiPlayState) DOM.murattalAudio.play();
+                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.playVideo();
+                
+                // Update Firebase agar HP tahu alarm sudah dimatikan dari layar
+                db.collection("baby_night_settings").doc("global_state").update({ isAlarmRinging: false, alarmActive: false });
             }
         };
 
-        const DOM = {
-            trigger: document.getElementById('secret-trigger'),
-            adminPanel: document.getElementById('admin-panel'), btnCloseAdmin: document.getElementById('btn-close-admin'),
-            layerTheme: document.getElementById('theme-layer'), layerClockArea: document.getElementById('clock-render-area'), layerDate: document.getElementById('date-display'),
-            layerPrayer: document.getElementById('prayer-layer'), layerOverlay: document.getElementById('brightness-overlay'),
-            layerBabyName: document.getElementById('baby-name-layer'), sleepTimerDisp: document.getElementById('sleep-timer-display'), customAudioPlayer: document.getElementById('custom-audio-player'),
-            btnDisplayStopAlarm: document.getElementById('display-stop-alarm'), layerOverlayImg: document.getElementById('overlay-img-render'), layerOverlayTxt: document.getElementById('overlay-text-render'),
-            layerMarquee: document.getElementById('marquee-layer'),
-            
-            uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'),
-            uiBrightness: document.getElementById('set-brightness'), uiParticle: document.getElementById('set-particle'), uiSpeed: document.getElementById('set-speed'), uiPerf: document.getElementById('set-performance'),
-            
-            uiBabyName: document.getElementById('set-baby-name'), uiBabyFont: document.getElementById('set-baby-font'), uiBabyColor: document.getElementById('set-baby-color'),
-            uiOverlayTxt: document.getElementById('set-overlay-text'), uiOverlayImg: document.getElementById('set-overlay-img'),
-            
-            uiYtId: document.getElementById('set-yt-id'), btnLoadYt: document.getElementById('btn-load-yt'), btnPlayYt: document.getElementById('btn-yt-play'), btnPauseYt: document.getElementById('btn-yt-pause'),
-            uiCustomAudioFile: document.getElementById('set-custom-audio'), tglWN: document.getElementById('tgl-whitenoise'), volWN: document.getElementById('vol-whitenoise'), tglOc: document.getElementById('tgl-ocean'), volOc: document.getElementById('vol-ocean'), tglHb: document.getElementById('tgl-heartbeat'), volHb: document.getElementById('vol-heartbeat'), uiMasterVol: document.getElementById('set-master-volume'), btnPlay: document.getElementById('btn-play-audio'), btnStop: document.getElementById('btn-stop-audio'),
-            
-            uiQuranSurah: document.getElementById('set-quran-surah'), uiShowQuran: document.getElementById('set-show-quran'), uiQuranSize: document.getElementById('set-quran-size'), uiQuranFont: document.getElementById('set-quran-font'), uiQuranSpeed: document.getElementById('set-quran-speed'),
-            
-            uiClock: document.getElementById('set-clock'), uiClockColor: document.getElementById('set-clock-color'), uiClockFont: document.getElementById('set-clock-font'), uiPrayer: document.getElementById('set-prayer'), btnGeo: document.getElementById('btn-geo'),
-            uiClockSize: document.getElementById('set-clock-size'), uiClockSeconds: document.getElementById('set-clock-seconds'),
-            uiAlarmTime: document.getElementById('set-alarm-time'), uiAlarmActive: document.getElementById('set-alarm-active'), btnStopAlarm: document.getElementById('btn-stop-alarm'),
-            
-            uiAutoNight: document.getElementById('set-auto-night'), uiPreset: document.getElementById('set-preset'), btnApplyPreset: document.getElementById('btn-apply-preset'), uiSleepTimer: document.getElementById('set-sleep-timer'),
-            btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state')
-        };
-
+        // ==========================================
+        // RENDER VISUAL & WAKTU
+        // ==========================================
         const ThemeCtrl = {
             render: () => {
                 DOM.layerTheme.innerHTML = ''; DOM.layerTheme.className = '';
@@ -880,22 +469,19 @@
                     DOM.layerOverlayTxt.innerText = state.overlayText; 
                     const durationMs = Math.max(10, state.overlayText.length * 0.3); // Kecepatan otomatis
                     DOM.layerOverlayTxt.style.animationDuration = `${durationMs}s`;
-                } else {
-                    DOM.layerMarquee.style.display = 'none';
-                }
+                } else { DOM.layerMarquee.style.display = 'none'; }
 
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
+                
+                // Tampilkan/Sembunyikan layer sholat
+                if(state.showPrayer) DOM.layerPrayer.style.display = 'flex';
+                else DOM.layerPrayer.style.display = 'none';
             }
         };
 
         const TimeCtrl = {
-            timerEndTime: null, timerOriginalBrightness: 0, isNightModeTriggered: false,
+            timerEndTime: null, timerOriginalBrightness: 0, isNightModeTriggered: false, adzanTriggeredFor: '',
             init: () => { TimeCtrl.update(); setInterval(TimeCtrl.update, 1000); },
-            startSleepTimer: (minutes) => {
-                if(minutes == 0) { TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none'; return; }
-                TimeCtrl.timerOriginalBrightness = state.brightness; TimeCtrl.timerEndTime = new Date().getTime() + (minutes * 60000);
-                DOM.sleepTimerDisp.style.display = 'block';
-            },
             update: () => {
                 const now = new Date();
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -903,10 +489,12 @@
                 DOM.layerDate.style.transform = `scale(${state.clockSize})`;
 
                 const hr = now.getHours(); const min = now.getMinutes(); const sec = now.getSeconds();
+                const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0'); const sStr = String(sec).padStart(2, '0');
+                const currentTimeStr = `${hStr}:${mStr}`;
 
+                // Jam Digital / Analog (Menerapkan scale dan show seconds)
                 if (state.clockType === 'digital') {
-                    const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0'); const sStr = String(sec).padStart(2, '0');
-                    const timeStr = state.clockSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+                    const timeStr = state.clockSeconds ? `${currentTimeStr}:${sStr}` : currentTimeStr;
                     DOM.layerClockArea.innerHTML = `<div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;">${timeStr}</div>`;
                 } else if (state.clockType === 'analog') {
                     const sD = (sec / 60) * 360; const mD = (min / 60) * 360 + (sec / 60) * 6; const hD = (hr / 12) * 360 + (min / 60) * 30;
@@ -914,102 +502,67 @@
                     DOM.layerClockArea.innerHTML = `<div class="clock-analog" style="border-color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;"><div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div><div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div>${secondHand}<div class="analog-center"></div></div>`;
                 } else { DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = ''; }
 
-                // Pemicu Alarm
-                if (state.alarmActive && state.alarmTime !== '') {
-                    const hStrT = String(hr).padStart(2, '0'); const mStrT = String(min).padStart(2, '0');
-                    if (state.alarmTime === `${hStrT}:${mStrT}` && sec === 0 && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
+                // Cek Pemicu Alarm
+                if (state.alarmActive && state.alarmTime === currentTimeStr && sec === 0 && !state.isAlarmRinging) {
+                    AlarmCtrl.trigger();
                 }
 
+                // Cek Pemicu Adzan Otomatis & Countdown
+                if (state.showAdzan && prayerTimesData) {
+                    let nextPrayerName = ''; let nextPrayerTimeDiff = Infinity;
+                    
+                    for (const [name, timeStr] of Object.entries(prayerTimesData)) {
+                        // Cek Trigger Adzan
+                        if (timeStr === currentTimeStr && sec === 0 && TimeCtrl.adzanTriggeredFor !== timeStr) {
+                            TimeCtrl.adzanTriggeredFor = timeStr; // Cegah loop di menit yang sama
+                            AlarmCtrl.triggerAdzan(name);
+                        }
+                        
+                        // Hitung Countdown
+                        const [pHR, pMIN] = timeStr.split(':');
+                        const pDate = new Date(); pDate.setHours(pHR, pMIN, 0, 0);
+                        if (pDate > now) {
+                            const diff = pDate - now;
+                            if (diff < nextPrayerTimeDiff) { nextPrayerTimeDiff = diff; nextPrayerName = name; }
+                        }
+                    }
+                    
+                    // Render Countdown jika ada waktu sholat selanjutnya
+                    if (nextPrayerName !== '' && state.showPrayer) {
+                        const m = Math.floor((nextPrayerTimeDiff % 3600000) / 60000);
+                        const s = Math.floor((nextPrayerTimeDiff % 60000) / 1000);
+                        DOM.layerCountdown.style.display = 'block';
+                        DOM.layerCountdown.innerText = `Menuju ${nextPrayerName}: ${m}m ${s}s`;
+                    } else { DOM.layerCountdown.style.display = 'none'; }
+                }
+
+                // Smart Auto Mode (Ganti Tema Malam Otomatis)
                 if (state.autoNightMode) {
                     const isNight = (hr >= 18 || hr < 6);
                     if (isNight && !TimeCtrl.isNightModeTriggered) {
                         TimeCtrl.isNightModeTriggered = true; Object.assign(state, {theme: 'night-sky', brightness: 40, enWhiteNoise: true, masterVolume: 0.2});
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play(); StorageCtrl.save(true);
+                        ThemeCtrl.render(); AudioCtrl.play(); db.collection("baby_night_settings").doc("global_state").set(state);
                     } else if (!isNight && TimeCtrl.isNightModeTriggered) {
                         TimeCtrl.isNightModeTriggered = false; Object.assign(state, {brightness: 0, enWhiteNoise: false});
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop(); StorageCtrl.save(true);
+                        ThemeCtrl.render(); AudioCtrl.stop(); db.collection("baby_night_settings").doc("global_state").set(state);
                     }
                 }
-
-                if (TimeCtrl.timerEndTime) {
-                    const diff = TimeCtrl.timerEndTime - now.getTime();
-                    if (diff <= 0) {
-                        TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none'; state.brightness = 95; 
-                        AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.stop(); StorageCtrl.save(true);
-                    } else {
-                        const totalDur = DOM.uiSleepTimer.value * 60000; const progress = 1 - (diff / totalDur);
-                        const m = Math.floor(diff / 60000); const s = Math.floor((diff % 60000) / 1000);
-                        DOM.sleepTimerDisp.innerText = `Sleep in: ${m}m ${s}s`;
-                        const targetBrightness = TimeCtrl.timerOriginalBrightness + ( (90 - TimeCtrl.timerOriginalBrightness) * progress );
-                        DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${targetBrightness / 100})`;
-                    }
-                }
-            }
-        };
-
-        const AudioCtrl = {
-            ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
-            initCtx: () => { if (!AudioCtrl.ctx) { AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)(); AudioCtrl.masterGain = AudioCtrl.ctx.createGain(); AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination); } },
-            createWhiteNoise: () => {
-                const bufferSize = AudioCtrl.ctx.sampleRate * 2; const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
-                const output = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-                const noise = AudioCtrl.ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
-                const filter = AudioCtrl.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; noise.connect(filter);
-                return { src: noise, out: filter };
-            },
-            createOcean: () => {
-                const wn = AudioCtrl.createWhiteNoise(); wn.out.frequency.value = 300; 
-                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.08; 
-                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
-                return { src: wn.src, out: lfoGain, extra: lfo };
-            },
-            startHeartbeat: (gainNode) => {
-                AudioCtrl.heartbeatInterval = setInterval(() => {
-                    if(AudioCtrl.ctx.state !== 'running') return;
-                    const osc = AudioCtrl.ctx.createOscillator(); const env = AudioCtrl.ctx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
-                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
-                    osc.connect(env); env.connect(gainNode); osc.start(AudioCtrl.ctx.currentTime); osc.stop(AudioCtrl.ctx.currentTime + 0.7);
-                }, 1200); 
-            },
-            play: () => {
-                AudioCtrl.stop(); 
-                if (state.useCustomAudio && DOM.customAudioPlayer.src) { DOM.customAudioPlayer.volume = state.masterVolume; DOM.customAudioPlayer.play().catch(e=>console.log("Audio play blocked by browser")); }
-                AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
-                AudioCtrl.masterGain.gain.value = state.masterVolume;
-                if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
-                if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
-                if (state.enHeartbeat) { const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volHeartbeat; vol.connect(AudioCtrl.masterGain); AudioCtrl.startHeartbeat(vol); }
-            },
-            stop: () => {
-                DOM.customAudioPlayer.pause();
-                Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} });
-                AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval);
-            },
-            updateVolumes: () => {
-                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
-                if(DOM.customAudioPlayer) DOM.customAudioPlayer.volume = state.masterVolume;
-                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
             }
         };
 
         const LocationCtrl = {
             fetchPrayer: async () => {
-                if (!state.showPrayer) { DOM.layerPrayer.style.opacity = 0; return; }
-                DOM.layerPrayer.style.opacity = 1;
                 try {
                     const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${state.lat}&longitude=${state.lng}&method=11`);
-                    const data = await res.json(); const t = data.data.timings;
-                    document.getElementById('pray-Fajr').innerText = t.Fajr; document.getElementById('pray-Dhuhr').innerText = t.Dhuhr; document.getElementById('pray-Asr').innerText = t.Asr; document.getElementById('pray-Maghrib').innerText = t.Maghrib; document.getElementById('pray-Isha').innerText = t.Isha;
+                    const data = await res.json(); 
+                    prayerTimesData = { Subuh: data.data.timings.Fajr, Dzuhur: data.data.timings.Dhuhr, Ashar: data.data.timings.Asr, Maghrib: data.data.timings.Maghrib, Isya: data.data.timings.Isha };
+                    
+                    document.getElementById('pray-Fajr').innerText = prayerTimesData.Subuh; 
+                    document.getElementById('pray-Dhuhr').innerText = prayerTimesData.Dzuhur; 
+                    document.getElementById('pray-Asr').innerText = prayerTimesData.Ashar; 
+                    document.getElementById('pray-Maghrib').innerText = prayerTimesData.Maghrib; 
+                    document.getElementById('pray-Isha').innerText = prayerTimesData.Isya;
                 } catch (e) { console.error("API Sholat error"); }
-            },
-            autoDetect: () => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => { state.lat = pos.coords.latitude; state.lng = pos.coords.longitude; alert(`Lokasi Ditemukan! Lat: ${state.lat.toFixed(2)}, Lng: ${state.lng.toFixed(2)}`); LocationCtrl.fetchPrayer(); StorageCtrl.save(true); },
-                        (err) => alert("Gagal akses lokasi. Gunakan koneksi HTTPS/Izinkan browser.")
-                    );
-                } else alert("Geolocation tidak didukung");
             }
         };
 
@@ -1018,145 +571,56 @@
             init: () => {
                 window.addEventListener('touchstart', e => GestureCtrl.touchStartX = e.changedTouches[0].screenX);
                 window.addEventListener('touchend', e => {
-                    // Mencegah ganti tema jika user menyentuh panel admin
-                    if (e.target.closest('#admin-panel') || e.target.closest('.admin-tabs')) return;
-
                     const endX = e.changedTouches[0].screenX; const diff = endX - GestureCtrl.touchStartX;
                     if (Math.abs(diff) > 100) {
                         const themes = ['night-sky', 'ocean', 'forest', 'sunset', 'aurora', 'galaxy', 'rain', 'snow', 'fire', 'underwater', 'clouds', 'matrix', 'blank']; let currIdx = themes.indexOf(state.theme);
                         if(diff > 0) currIdx = (currIdx - 1 + themes.length) % themes.length; else currIdx = (currIdx + 1) % themes.length; 
-                        state.theme = themes[currIdx]; AdminCtrl.syncUIToState(); ThemeCtrl.render(); StorageCtrl.save(true);
+                        state.theme = themes[currIdx]; ThemeCtrl.render(); db.collection("baby_night_settings").doc("global_state").set(state);
                     }
                     const now = new Date().getTime();
                     if(now - GestureCtrl.lastTap < 300 && Math.abs(diff) < 20) {
-                        if(Object.keys(AudioCtrl.nodes).length > 0 || !DOM.customAudioPlayer.paused) AudioCtrl.stop(); else AudioCtrl.play();
+                        if(Object.keys(AudioCtrl.nodes).length > 0) AudioCtrl.stop(); else AudioCtrl.play();
                     }
                     GestureCtrl.lastTap = now;
                 });
-                const goFullscreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(()=>{}); } window.removeEventListener('click', goFullscreen); };
-                window.addEventListener('click', goFullscreen);
             }
         };
 
-        const AdminCtrl = {
-            tapCount: 0, tapTimeout: null,
-            init: () => {
-                // PIN DIHAPUS: Tap langsung buka Admin Panel
-                DOM.trigger.addEventListener('click', () => {
-                    AdminCtrl.tapCount++; clearTimeout(AdminCtrl.tapTimeout);
-                    if (AdminCtrl.tapCount >= 5) { DOM.adminPanel.style.display = 'flex'; AdminCtrl.tapCount = 0; AdminCtrl.syncUIToState(); }
-                    AdminCtrl.tapTimeout = setTimeout(() => AdminCtrl.tapCount = 0, 3000);
-                });
+        // Mulai Aplikasi Display
+        function startDisplay() {
+            // Minta Izin User Dulu (Klik Layar) agar Video/Audio bisa autoplay
+            DOM.startOverlay.addEventListener('click', () => {
+                DOM.startOverlay.style.display = 'none';
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
                 
-                DOM.btnCloseAdmin.addEventListener('click', () => DOM.adminPanel.style.display = 'none');
-
-                // Sistem Tabs Elegan
-                const tabBtns = document.querySelectorAll('.tab-btn');
-                const sections = document.querySelectorAll('.admin-section');
-                tabBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        tabBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
-                        sections.forEach(s => s.classList.remove('active'));
-                        document.getElementById(btn.getAttribute('data-target')).classList.add('active');
-                    });
+                // Mulai Listener Firebase
+                db.collection("baby_night_settings").doc("global_state").onSnapshot((docSnap) => {
+                    if (docSnap.exists) {
+                        const data = docSnap.data();
+                        Object.assign(state, data); 
+                        ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
+                        
+                        // Handler Mode Teks Biasa vs Mode Islami Audio
+                        if(state.islamiPlayState) { QuranTextCtrl.stop(); IslamicCtrl.fetchAndPlay(); }
+                        else { IslamicCtrl.stop(); if(state.showQuran && QuranTextCtrl.currentSurahRendered !== state.quranSurah) QuranTextCtrl.fetchAndRender(); else if (!state.showQuran) QuranTextCtrl.stop(); }
+                        
+                        if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+                            if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
+                            if(state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
+                        }
+                        
+                        if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
+                        else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
+                    }
                 });
 
-                // Teks & Media Overlay
-                DOM.uiBabyName.addEventListener('input', e => { state.babyName = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiBabyFont.addEventListener('change', e => { state.babyFont = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiBabyColor.addEventListener('input', e => { state.babyColor = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiOverlayTxt.addEventListener('input', e => { state.overlayText = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiOverlayImg.addEventListener('input', e => { state.overlayImg = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-
-                // Quran Setup
-                DOM.uiQuranSize.addEventListener('change', e => { state.quranSize = e.target.value; StorageCtrl.save(true); });
-                DOM.uiQuranFont.addEventListener('change', e => { state.quranFont = e.target.value; StorageCtrl.save(true); });
-                DOM.uiQuranSpeed.addEventListener('input', e => { state.quranSpeed = e.target.value; document.getElementById('val-quran-speed').innerText = e.target.value+'ms'; StorageCtrl.save(true); });
-
-                // Tombol Matikan Alarm di Layar
+                ThemeCtrl.render(); TimeCtrl.init(); LocationCtrl.fetchPrayer(); GestureCtrl.init(); loadYouTubeScript();
+                setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
+                
                 DOM.btnDisplayStopAlarm.addEventListener('click', AlarmCtrl.stopGlobal);
-
-                // Auto & Presets
-                DOM.uiAutoNight.addEventListener('change', e => { state.autoNightMode = e.target.checked; StorageCtrl.save(true); });
-                DOM.btnApplyPreset.addEventListener('click', () => { const p = DOM.uiPreset.value; if(Presets[p]) { Object.assign(state, Presets[p]); AdminCtrl.syncUIToState(); ThemeCtrl.render(); AudioCtrl.play(); StorageCtrl.save(true); } });
-                DOM.uiSleepTimer.addEventListener('change', e => { state.sleepTimer = parseInt(e.target.value); TimeCtrl.startSleepTimer(state.sleepTimer); StorageCtrl.save(true); });
-                DOM.uiAlarmTime.addEventListener('input', e => { state.alarmTime = e.target.value; StorageCtrl.save(true); });
-                DOM.uiAlarmActive.addEventListener('change', e => { state.alarmActive = e.target.checked; StorageCtrl.save(true); });
-                DOM.btnStopAlarm.addEventListener('click', AlarmCtrl.stopGlobal);
-                DOM.uiTheme.addEventListener('change', e => { state.theme = e.target.value; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'flex' : 'none'; ThemeCtrl.render(); StorageCtrl.save(true); });
-                ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => { state[id.replace('ui','custom')] = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); }));
-                DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.uiPerf.addEventListener('change', e => { state.performanceMode = e.target.checked; ThemeCtrl.render(); StorageCtrl.save(true); });
-                DOM.btnLoadYt.addEventListener('click', () => { 
-                    state.ytVideoId = DOM.uiYtId.value.trim(); 
-                    if(ytPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') { ytPlayer.loadVideoById(state.ytVideoId); alert("YouTube Berhasil Dimuat! Silakan klik Play YT"); StorageCtrl.save(true); } 
-                    else alert("API YouTube belum siap. Harap tunggu sebentar lalu coba lagi."); 
-                });
-                DOM.btnPlayYt.addEventListener('click', () => { state.ytPlayState = true; if(ytPlayerReady && ytPlayer) ytPlayer.playVideo(); StorageCtrl.save(true); });
-                DOM.btnPauseYt.addEventListener('click', () => { state.ytPlayState = false; if(ytPlayerReady && ytPlayer) ytPlayer.pauseVideo(); StorageCtrl.save(true); });
-                
-                DOM.uiQuranSurah.addEventListener('input', e => { state.quranSurah = e.target.value; StorageCtrl.save(true); });
-                DOM.uiShowQuran.addEventListener('change', e => { state.showQuran = e.target.checked; QuranCtrl.fetchAndRender(); StorageCtrl.save(true); });
-                DOM.uiCustomAudioFile.addEventListener('change', e => { const file = e.target.files[0]; if(file) { DOM.customAudioPlayer.src = URL.createObjectURL(file); state.useCustomAudio = true; DOM.txtCustomAudioName.innerText = "Loaded: " + file.name; } });
-                DOM.tglWN.addEventListener('change', e => { state.enWhiteNoise = e.target.checked; StorageCtrl.save(true); });
-                DOM.tglOc.addEventListener('change', e => { state.enOcean = e.target.checked; StorageCtrl.save(true); });
-                DOM.tglHb.addEventListener('change', e => { state.enHeartbeat = e.target.checked; StorageCtrl.save(true); });
-                DOM.volWN.addEventListener('input', e => { state.volWhiteNoise = e.target.value/100; StorageCtrl.save(true); });
-                DOM.volOc.addEventListener('input', e => { state.volOcean = e.target.value/100; StorageCtrl.save(true); });
-                DOM.volHb.addEventListener('input', e => { state.volHeartbeat = e.target.value/100; StorageCtrl.save(true); });
-                DOM.uiMasterVol.addEventListener('input', e => { state.masterVolume = e.target.value/100; document.getElementById('val-master-vol').innerText = e.target.value+'%'; AudioCtrl.updateVolumes(); StorageCtrl.save(true); });
-                DOM.btnPlay.addEventListener('click', () => { AudioCtrl.play(); StorageCtrl.save(true); }); 
-                DOM.btnStop.addEventListener('click', () => { AudioCtrl.stop(); StorageCtrl.save(true); });
-                
-                // Clock Updates
-                DOM.uiClock.addEventListener('change', e => { state.clockType = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
-                DOM.uiClockColor.addEventListener('input', e => { state.clockColor = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
-                DOM.uiClockFont.addEventListener('change', e => { state.clockFont = e.target.value; TimeCtrl.update(); StorageCtrl.save(true); });
-                DOM.uiClockSize.addEventListener('input', e => { state.clockSize = e.target.value; document.getElementById('val-clock-size').innerText = e.target.value+'x'; TimeCtrl.update(); StorageCtrl.save(true); });
-                DOM.uiClockSeconds.addEventListener('change', e => { state.clockSeconds = e.target.checked; TimeCtrl.update(); StorageCtrl.save(true); });
-                
-                DOM.uiPrayer.addEventListener('change', e => { state.showPrayer = e.target.checked; LocationCtrl.fetchPrayer(); StorageCtrl.save(true); });
-                DOM.btnGeo.addEventListener('click', LocationCtrl.autoDetect);
-                DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
-                DOM.btnResetState.addEventListener('click', StorageCtrl.reset);
-            },
-            syncUIToState: () => {
-                DOM.uiAutoNight.checked = state.autoNightMode; DOM.uiTheme.value = state.theme; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'flex' : 'none';
-                DOM.uiBg1.value = state.customBg1; DOM.uiBg2.value = state.customBg2; DOM.uiPColor.value = state.customPColor;
-                DOM.uiBrightness.value = state.brightness; document.getElementById('val-brightness').innerText = `${state.brightness}% Dark`;
-                DOM.uiParticle.value = state.particleCount; document.getElementById('val-particle').innerText = state.particleCount;
-                DOM.uiSpeed.value = state.animSpeed; document.getElementById('val-speed').innerText = state.animSpeed+'x';
-                DOM.uiPerf.checked = state.performanceMode; DOM.uiAlarmTime.value = state.alarmTime; DOM.uiAlarmActive.checked = state.alarmActive;
-                DOM.uiYtId.value = state.ytVideoId; DOM.uiQuranSurah.value = state.quranSurah; DOM.uiShowQuran.checked = state.showQuran;
-                DOM.uiQuranSize.value = state.quranSize; DOM.uiQuranFont.value = state.quranFont; DOM.uiQuranSpeed.value = state.quranSpeed; document.getElementById('val-quran-speed').innerText = state.quranSpeed+'ms';
-                DOM.tglWN.checked = state.enWhiteNoise; DOM.volWN.value = state.volWhiteNoise * 100;
-                DOM.tglOc.checked = state.enOcean; DOM.volOc.value = state.volOcean * 100;
-                DOM.tglHb.checked = state.enHeartbeat; DOM.volHb.value = state.volHeartbeat * 100;
-                DOM.uiMasterVol.value = state.masterVolume * 100; document.getElementById('val-master-vol').innerText = (state.masterVolume*100)+'%';
-                DOM.uiBabyName.value = state.babyName; DOM.uiBabyFont.value = state.babyFont; DOM.uiBabyColor.value = state.babyColor;
-                DOM.uiOverlayTxt.value = state.overlayText || ''; DOM.uiOverlayImg.value = state.overlayImg || '';
-                DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; 
-                DOM.uiClockSize.value = state.clockSize; document.getElementById('val-clock-size').innerText = state.clockSize+'x';
-                DOM.uiClockSeconds.checked = state.clockSeconds;
-                DOM.uiPrayer.checked = state.showPrayer;
-            }
-        };
-
-        function startApp() {
-            StorageCtrl.load(); AdminCtrl.init(); AdminCtrl.syncUIToState(); ThemeCtrl.render(); TimeCtrl.init();        
-            LocationCtrl.fetchPrayer(); GestureCtrl.init(); QuranCtrl.fetchAndRender();
-            loadYouTubeScript(); setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
-            
-            // JALANKAN LISTENER FIREBASE HANYA JIKA FIREBASE SUDAH SIAP
-            if (window.firebaseDb) {
-                StorageCtrl.listenFirebase();
-            } else {
-                window.addEventListener('firebase-ready', StorageCtrl.listenFirebase);
-            }
+            });
         }
-        window.onload = startApp;
+        window.onload = startDisplay;
     </script>
 </body>
 </html>
