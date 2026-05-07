@@ -5,26 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Night Display</title>
     <style>
+        /* ========================================================
+           1. CSS RESET & GLOBAL STYLES
+           ======================================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body, html { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: #000; color: #fff; touch-action: none; }
 
         /* Layar Utama & Tema */
-        #display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #theme-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden; transition: background 1s ease; }
+        #display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: filter 0.5s ease; }
+        #theme-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden; transition: background 1s ease, filter 1s; background-size: cover; background-position: center; }
 
         /* Layar Awal (Tap to Start) - Wajib untuk memancing izin Audio Browser */
         #start-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        #start-overlay h1 { font-size: 3rem; color: #4facfe; animation: pulse 2s infinite; }
-
+        #start-overlay h1 { font-size: 3rem; color: #4facfe; animation: pulse 2s infinite; text-align: center; padding: 20px;}
+        #start-overlay p { color: #888; margin-top: 10px; font-size: 1.2rem; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
 
         /* Custom Overlay Media (Gambar Kanan Atas) */
         #custom-overlay-layer { position: absolute; top: 5%; right: 5%; z-index: 3; max-width: 30%; pointer-events: none; opacity: 0.8; }
         #custom-overlay-layer img { max-width: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 
-        /* Layer Teks LED Berjalan (Di bawah) */
+        /* Layer Teks LED Berjalan (Di bawah, di atas jadwal sholat) */
         #marquee-layer { position: absolute; bottom: 120px; width: 100%; overflow: hidden; white-space: nowrap; z-index: 3; pointer-events: none; }
-        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); }
+        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); font-family: 'Segoe UI', sans-serif;}
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         /* Nama Bayi */
@@ -32,11 +35,23 @@
         @keyframes floatName { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
         /* Al-Quran (Tampil Per Ayat - Posisi Atas/Tengah) */
-        #quran-layer { position: absolute; top: 20%; left: 10%; width: 80%; height: 30%; text-align: center; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffd700; transition: opacity 0.5s ease; text-shadow: 0 0 15px rgba(0,0,0,0.9); pointer-events: none; }
-        .quran-ayah-text { margin-bottom: 15px; line-height: 1.6; }
-        .quran-translation { font-size: 1.2rem; color: #fff; opacity: 0.9; font-family: 'Segoe UI', sans-serif; }
+        #quran-layer { position: absolute; top: 20%; left: 10%; width: 80%; height: 30%; text-align: center; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffd700; text-shadow: 0 0 15px rgba(0,0,0,0.9); pointer-events: none; }
+        
+        /* Quran Transitions CSS */
+        .q-fade { opacity: 0; transition: opacity 0.8s ease; }
+        .q-fade.show { opacity: 1; }
+        .q-slide { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+        .q-slide.show { opacity: 1; transform: translateY(0); }
+        .q-glow { opacity: 0; transition: opacity 0.5s; text-shadow: 0 0 5px #ffd700; }
+        .q-glow.show { opacity: 1; animation: breatheGlow 3s infinite alternate; }
+        @keyframes breatheGlow { from { text-shadow: 0 0 5px #ffd700; } to { text-shadow: 0 0 25px #ff8c00, 0 0 35px #ffd700; } }
+        .q-type span { opacity: 0; animation: typeChar 0.1s forwards; }
+        @keyframes typeChar { to { opacity: 1; } }
 
-        /* Jam Digital / Analog (Posisi Agak Bawah agar tidak menabrak Quran) */
+        .quran-ayah-text { margin-bottom: 15px; line-height: 1.6; }
+        .quran-translation { font-size: 1.2rem; color: #fff; opacity: 0.9; font-family: 'Segoe UI', sans-serif; margin-top: 10px;}
+
+        /* Jam Digital / Analog */
         #clock-layer { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); z-index: 3; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none; width: 100vw; display: flex; flex-direction: column; align-items: center; }
         .clock-digital { font-size: 8rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-variant-numeric: tabular-nums; text-align: center; transition: transform 0.3s ease, color 0.3s ease; }
         .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; text-align: center; transition: transform 0.3s ease; }
@@ -56,21 +71,28 @@
         
         #countdown-layer { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 3; font-size: 1.2rem; color: #4facfe; background: rgba(0,0,0,0.5); padding: 5px 20px; border-radius: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,0,0,0.8); display: none; }
 
-        /* Overlay Adzan Glow Emas */
+        /* Overlay Adzan Glow Emas & Iqamah LED */
         #adzan-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 8; background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(0,0,0,0) 80%); opacity: 0; pointer-events: none; transition: opacity 2s ease; }
         .adzan-active { opacity: 1 !important; animation: adzanPulse 3s infinite alternate; }
         @keyframes adzanPulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        #iqamah-layer { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 9; font-size: 10rem; font-weight: bold; color: #ff0000; font-family: monospace; text-shadow: 0 0 20px #ff0000; display: none; animation: blink 1s infinite; pointer-events:none;}
+        @keyframes blink { 0%, 100% { opacity: 1;} 50% { opacity: 0.2; } }
 
-        /* Overlay Kecerahan & Alarm */
+        /* Overlay Kecerahan & Sleep Timer */
         #brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 10; pointer-events: none; transition: background-color 0.5s ease; }
+        #sleep-timer-display { position: absolute; top: 20px; left: 20px; z-index: 3; font-size: 1.2rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; display: none; }
+
+        /* Alarm Flash & Stop Button */
         .alarm-flash { animation: flashRed 1s infinite alternate; }
         @keyframes flashRed { 0% { background-color: rgba(255, 0, 0, 0); } 100% { background-color: rgba(255, 0, 0, 0.6); } }
 
-        /* Tombol Matikan Alarm / Adzan di Layar */
         #display-stop-alarm { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; padding: 20px 40px; font-size: 2rem; font-weight: bold; background: #ff4757; color: white; border: none; border-radius: 20px; cursor: pointer; display: none; animation: pulseBtn 1s infinite; }
         @keyframes pulseBtn { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
 
-        /* Tema CSS */
+        /* ========================================================
+           3. THEMES CSS (> 10 TEMA)
+           ======================================================== */
         .theme-night-sky { background: linear-gradient(to bottom, #020111 0%, #20124d 100%); }
         .theme-ocean { background: linear-gradient(to bottom, #001f3f 0%, #001122 100%); }
         .theme-forest { background: linear-gradient(to bottom, #001a00 0%, #000d00 100%); }
@@ -110,37 +132,41 @@
     </style>
 </head>
 <body>
-    <!-- Overlay Pemancing Interaksi (Wajib untuk Audio Autoplay) -->
+    <!-- Overlay Pemancing Interaksi -->
     <div id="start-overlay">
         <h1>👆 TAP UNTUK MEMULAI PROYEKTOR</h1>
-        <p>Aplikasi butuh izin untuk memutar Audio & Layar Penuh</p>
+        <p>Aplikasi butuh interaksi agar audio otomatis dapat diputar.</p>
     </div>
 
+    <!-- Efek dan Overlay Interaktif -->
     <div id="adzan-glow"></div>
     <div id="brightness-overlay"></div>
+    <div id="sleep-timer-display"></div>
     <button id="display-stop-alarm">MATIKAN ALARM / ADZAN</button>
 
+    <!-- Youtube & Audio Tags -->
     <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px;"></div>
-    <!-- Audio Murattal Islami & Adzan -->
     <audio id="murattal-audio"></audio>
     <audio id="adzan-audio" src="https://www.islamcan.com/audio/adhan/azan1.mp3"></audio>
 
     <div id="display-container">
+        <!-- Visual Latar Belakang -->
         <div id="theme-layer"></div>
-        <div id="baby-name-layer" style="display:none;"></div>
         
+        <!-- Media Tambahan -->
+        <div id="baby-name-layer" style="display:none;"></div>
         <div id="custom-overlay-layer"><img id="overlay-img-render" style="display:none;" src=""></div>
         <div id="marquee-layer" style="display:none;"><div id="overlay-text-render" class="marquee-text"></div></div>
 
-        <!-- Teks Al-Quran Per Ayat (Dibuat Stabil di Tengah Atas) -->
+        <!-- Mode Islami (Al-Quran & Iqamah) -->
         <div id="quran-layer"></div>
+        <div id="iqamah-layer">00:00</div>
         
-        <!-- Jam (Stabil di Tengah Bawah) -->
+        <!-- Waktu & Sholat -->
         <div id="clock-layer">
             <div id="clock-render-area"></div>
             <div id="date-display" class="clock-date"></div>
         </div>
-
         <div id="countdown-layer"></div>
 
         <div id="prayer-layer">
@@ -152,11 +178,12 @@
         </div>
     </div>
 
-    <!-- FIREBASE SDK -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+    <!-- MENGGUNAKAN FIREBASE FIRESTORE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <script>
+        // Ganti dengan Config milik Anda yang baru
         const firebaseConfig = {
           apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
           authDomain: "bbynight-d2bb0.firebaseapp.com",
@@ -166,22 +193,35 @@
           appId: "1:169917444760:web:a262cf1f873539eafa96ed",
           measurementId: "G-3CQQWZE5QB"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
 
-        // State Global (Hanya Menerima dari Admin)
-        let state = {
-            theme: 'night-sky', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
-            clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false,
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.firebaseDb = getFirestore(app);
+            window.firebaseDoc = doc;
+            window.firebaseUpdateDoc = updateDoc;
+            window.firebaseOnSnapshot = onSnapshot;
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch (e) { 
+            console.error("Firebase Initialization Error:", e); 
+        }
+    </script>
+
+    <script>
+        // State Penampung Global Data dari Admin
+        const defaultState = {
+            theme: 'night-sky', customBgImg: '', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
+            clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
+            weatherSync: false, cryDetect: false,
             particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
-            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8,
+            masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8, enRain: false, volRain: 0.6,
             ytVideoId: '', ytPlayState: false,
-            quranSurah: '1', showQuran: false, quranSize: 2, quranFont: "'Amiri', serif", quranSpeed: 100,
-            islamiPlayState: false, islamiSurah: '1', showAdzan: true,
+            islamiPlayState: false, islamiSurah: '1', islamiPlaylistMode: 'playlist', islamiTrans: 'glow', islamiFont: "'Amiri', serif", islamiSize: 3, showAdzan: true,
             alarmTime: '', alarmActive: false, isAlarmRinging: false, lat: -6.2088, lng: 106.8456, 
             babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff",
             overlayText: '', overlayImg: '', performanceMode: false
         };
+
+        let state = { ...defaultState };
 
         const DOM = {
             startOverlay: document.getElementById('start-overlay'),
@@ -190,238 +230,27 @@
             layerPrayer: document.getElementById('prayer-layer'), layerOverlay: document.getElementById('brightness-overlay'),
             layerBabyName: document.getElementById('baby-name-layer'), layerOverlayImg: document.getElementById('overlay-img-render'), layerOverlayTxt: document.getElementById('overlay-text-render'),
             layerMarquee: document.getElementById('marquee-layer'), layerQuran: document.getElementById('quran-layer'), layerAdzanGlow: document.getElementById('adzan-glow'),
-            layerCountdown: document.getElementById('countdown-layer'),
+            layerCountdown: document.getElementById('countdown-layer'), layerIqamah: document.getElementById('iqamah-layer'), sleepTimerDisp: document.getElementById('sleep-timer-display'),
             murattalAudio: document.getElementById('murattal-audio'), adzanAudio: document.getElementById('adzan-audio')
         };
 
-        let prayerTimesData = null; // Menyimpan data sholat hari ini
+        let prayerTimesData = null;
 
         // ==========================================
-        // FITUR ISLAMI (ROTASI AYAT & MURATTAL SYNC)
-        // ==========================================
-        const IslamicCtrl = {
-            ayahs: [], currentIdx: 0, isPlaying: false, currentSurahRendered: '',
-            
-            fetchAndPlay: async () => {
-                if (!state.islamiPlayState) { IslamicCtrl.stop(); return; }
-                if (IslamicCtrl.currentSurahRendered === state.islamiSurah && IslamicCtrl.isPlaying) return; // Mencegah fetch berulang
-                
-                IslamicCtrl.stop();
-                IslamicCtrl.isPlaying = true;
-                DOM.layerQuran.style.opacity = 1; 
-                DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
-                
-                try {
-                    // Fetch teks dan audio murattal (Mishary Rashid Alafasy) dari API
-                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`);
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        IslamicCtrl.ayahs = data.data.ayahs;
-                        IslamicCtrl.currentIdx = 0;
-                        IslamicCtrl.currentSurahRendered = state.islamiSurah;
-                        IslamicCtrl.playAyah();
-                    }
-                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Koneksi API Al-Quran Gagal.</div>'; }
-            },
-            
-            playAyah: () => {
-                if(!state.islamiPlayState || IslamicCtrl.ayahs.length === 0) return;
-                
-                // Auto Repeat jika surah habis
-                if(IslamicCtrl.currentIdx >= IslamicCtrl.ayahs.length) IslamicCtrl.currentIdx = 0; 
-                
-                const ayahObj = IslamicCtrl.ayahs[IslamicCtrl.currentIdx];
-                
-                // Tampilkan Teks
-                DOM.layerQuran.style.opacity = 0; 
-                setTimeout(() => {
-                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
-                    DOM.layerQuran.style.opacity = 1; 
-                    
-                    // Mainkan Audio yang tersinkron dengan ayat ini
-                    DOM.murattalAudio.src = ayahObj.audio;
-                    DOM.murattalAudio.volume = state.masterVolume;
-                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser"));
-                    
-                    // Lanjut ke ayat berikutnya setelah audio ayat ini selesai! (Perfect Sync)
-                    DOM.murattalAudio.onended = () => {
-                        IslamicCtrl.currentIdx++;
-                        IslamicCtrl.playAyah();
-                    };
-                }, 500);
-            },
-            
-            stop: () => { 
-                IslamicCtrl.isPlaying = false; 
-                DOM.murattalAudio.pause(); 
-                DOM.layerQuran.innerHTML = ''; 
-                DOM.layerQuran.style.opacity = 0; 
-                IslamicCtrl.currentSurahRendered = '';
-            }
-        };
-
-        // ==========================================
-        // QURAN TEKS SAJA (Tanpa Suara - Sesuai Kecepatan User)
-        // ==========================================
-        const QuranTextCtrl = {
-            ayahs: [], currentIdx: 0, timer: null, currentSurahRendered: '',
-            fetchAndRender: async () => {
-                QuranTextCtrl.stop();
-                if (!state.showQuran || state.islamiPlayState) return; // Jangan bentrok dengan mode Islami Audio
-                
-                DOM.layerQuran.style.opacity = 1; DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Teks Ayat...</div>';
-                try {
-                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        QuranTextCtrl.ayahs = data.data.ayahs;
-                        QuranTextCtrl.currentIdx = 0;
-                        QuranTextCtrl.currentSurahRendered = state.quranSurah;
-                        QuranTextCtrl.loopAyah();
-                    }
-                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Gagal memuat teks.</div>'; }
-            },
-            loopAyah: () => {
-                if(!state.showQuran || state.islamiPlayState || QuranTextCtrl.ayahs.length === 0) return;
-                if(QuranTextCtrl.currentIdx >= QuranTextCtrl.ayahs.length) QuranTextCtrl.currentIdx = 0; 
-                
-                const ayahObj = QuranTextCtrl.ayahs[QuranTextCtrl.currentIdx];
-                DOM.layerQuran.style.opacity = 0; 
-                setTimeout(() => {
-                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
-                    DOM.layerQuran.style.opacity = 1; 
-                    
-                    // Hitung durasi berdasarkan panjang karakter dikali kecepatan ms (Slider Admin)
-                    const durationMs = (ayahObj.text.length * state.quranSpeed) + 1500; 
-                    QuranTextCtrl.currentIdx++;
-                    QuranTextCtrl.timer = setTimeout(QuranTextCtrl.loopAyah, durationMs);
-                }, 800);
-            },
-            stop: () => { clearTimeout(QuranTextCtrl.timer); if(!state.islamiPlayState){ DOM.layerQuran.innerHTML = ''; DOM.layerQuran.style.opacity = 0; } QuranTextCtrl.currentSurahRendered = ''; }
-        };
-
-        // ==========================================
-        // YOUTUBE & AUDIO ENGINE
-        // ==========================================
-        let ytPlayerReady = false; let ytPlayer = null;
-        window.onYouTubeIframeAPIReady = () => {
-            ytPlayer = new YT.Player('youtube-player', {
-                height: '0', width: '0', videoId: state.ytVideoId,
-                playerVars: { 'playsinline': 1, 'loop': 1, 'playlist': state.ytVideoId },
-                events: { 'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); if(state.ytPlayState) ytPlayer.playVideo(); } }
-            });
-        };
-        function loadYouTubeScript() { let tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; let firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag); }
-
-        const AudioCtrl = {
-            ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
-            initCtx: () => { if (!AudioCtrl.ctx) { AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)(); AudioCtrl.masterGain = AudioCtrl.ctx.createGain(); AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination); } },
-            createWhiteNoise: () => {
-                const bufferSize = AudioCtrl.ctx.sampleRate * 2; const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
-                const output = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-                const noise = AudioCtrl.ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
-                const filter = AudioCtrl.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600; noise.connect(filter);
-                return { src: noise, out: filter };
-            },
-            createOcean: () => {
-                const wn = AudioCtrl.createWhiteNoise(); wn.out.frequency.value = 300; 
-                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.08; 
-                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
-                return { src: wn.src, out: lfoGain, extra: lfo };
-            },
-            startHeartbeat: (gainNode) => {
-                AudioCtrl.heartbeatInterval = setInterval(() => {
-                    if(AudioCtrl.ctx.state !== 'running') return;
-                    const osc = AudioCtrl.ctx.createOscillator(); const env = AudioCtrl.ctx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
-                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
-                    osc.connect(env); env.connect(gainNode); osc.start(AudioCtrl.ctx.currentTime); osc.stop(AudioCtrl.ctx.currentTime + 0.7);
-                }, 1200); 
-            },
-            play: () => {
-                AudioCtrl.stop(); 
-                AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
-                AudioCtrl.masterGain.gain.value = state.masterVolume;
-                if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
-                if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
-                if (state.enHeartbeat) { const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volHeartbeat; vol.connect(AudioCtrl.masterGain); AudioCtrl.startHeartbeat(vol); }
-            },
-            stop: () => {
-                Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} });
-                AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval);
-            },
-            updateVolumes: () => {
-                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
-                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
-                DOM.murattalAudio.volume = state.masterVolume;
-                DOM.adzanAudio.volume = state.masterVolume;
-            }
-        };
-
-        // ==========================================
-        // ALARM & ADZAN CONTROLLER
-        // ==========================================
-        const AlarmCtrl = {
-            isRinging: false, ctx: null, osc: null,
-            trigger: () => {
-                if(AlarmCtrl.isRinging) return;
-                AlarmCtrl.isRinging = true;
-                
-                DOM.layerOverlay.classList.add('alarm-flash');
-                DOM.btnDisplayStopAlarm.style.display = 'block'; 
-                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ALARM";
-
-                if (!AlarmCtrl.ctx) AlarmCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if(AlarmCtrl.ctx.state === 'suspended') AlarmCtrl.ctx.resume();
-
-                AlarmCtrl.osc = AlarmCtrl.ctx.createOscillator(); const gain = AlarmCtrl.ctx.createGain();
-                AlarmCtrl.osc.type = 'square'; AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); 
-                const lfo = AlarmCtrl.ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 4; lfo.connect(gain.gain); lfo.start();
-                AlarmCtrl.osc.connect(gain); gain.connect(AlarmCtrl.ctx.destination); AlarmCtrl.osc.start();
-            },
-            triggerAdzan: (namaSholat) => {
-                if(AlarmCtrl.isRinging) return; // Mencegah double trigger
-                AlarmCtrl.isRinging = true;
-                
-                // Pause Murattal atau YT saat Adzan
-                if(state.islamiPlayState) DOM.murattalAudio.pause();
-                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.pauseVideo();
-                
-                DOM.layerAdzanGlow.classList.add('adzan-active');
-                DOM.btnDisplayStopAlarm.style.display = 'block';
-                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ADZAN " + namaSholat;
-                
-                DOM.adzanAudio.volume = state.masterVolume;
-                DOM.adzanAudio.play().catch(e=>console.log("Audio diblokir"));
-            },
-            stopLocal: () => {
-                AlarmCtrl.isRinging = false;
-                DOM.layerOverlay.classList.remove('alarm-flash');
-                DOM.layerAdzanGlow.classList.remove('adzan-active');
-                DOM.btnDisplayStopAlarm.style.display = 'none';
-                
-                DOM.adzanAudio.pause(); DOM.adzanAudio.currentTime = 0;
-                if(AlarmCtrl.osc) { try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){} }
-                
-                // Lanjutkan Murattal jika tadi aktif
-                if(state.islamiPlayState) DOM.murattalAudio.play();
-                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.playVideo();
-                
-                // Update Firebase agar HP tahu alarm sudah dimatikan dari layar
-                db.collection("baby_night_settings").doc("global_state").update({ isAlarmRinging: false, alarmActive: false });
-            }
-        };
-
-        // ==========================================
-        // RENDER VISUAL & WAKTU
+        // 1. KONTROL TEMA & TAMPILAN
         // ==========================================
         const ThemeCtrl = {
             render: () => {
                 DOM.layerTheme.innerHTML = ''; DOM.layerTheme.className = '';
                 if(state.performanceMode) document.body.classList.add('performance-mode'); else document.body.classList.remove('performance-mode');
 
-                if (state.theme === 'custom') DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
-                else { DOM.layerTheme.style.background = ''; DOM.layerTheme.className = `theme-${state.theme}`; }
+                if (state.theme === 'gallery' && state.customBgImg !== '') {
+                    DOM.layerTheme.style.background = `url(${state.customBgImg})`; DOM.layerTheme.style.backgroundSize = 'cover'; DOM.layerTheme.style.backgroundPosition = 'center';
+                } else if (state.theme === 'custom') {
+                    DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
+                } else {
+                    DOM.layerTheme.style.background = ''; DOM.layerTheme.className = `theme-${state.theme}`;
+                }
 
                 const count = state.performanceMode ? Math.floor(state.particleCount / 2) : state.particleCount;
                 const speedMulti = 1 / state.animSpeed; 
@@ -433,7 +262,7 @@
                     }
                 };
 
-                if (state.theme === 'night-sky') renderParticles('p-star', `width:${Math.random()*3}px; height:${Math.random()*3}px;`);
+                if (state.theme === 'night-sky' || state.theme === 'gallery') renderParticles('p-star', `width:${Math.random()*3}px; height:${Math.random()*3}px;`);
                 else if (state.theme === 'custom') renderParticles('p-star', `width:3px; height:3px; background:${state.customPColor}; box-shadow:0 0 10px ${state.customPColor};`);
                 else if (state.theme === 'forest') renderParticles('p-firefly', 'width:4px; height:4px;');
                 else if (state.theme === 'rain') renderParticles('p-rain');
@@ -454,31 +283,30 @@
                     DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 }
 
-                // Render Nama Bayi 
+                // Render Elemen Media
                 if(state.babyName.trim() !== '') { 
                     DOM.layerBabyName.style.display = 'block'; DOM.layerBabyName.innerText = state.babyName; 
                     DOM.layerBabyName.style.fontFamily = state.babyFont; DOM.layerBabyName.style.color = state.babyColor;
                 } else DOM.layerBabyName.style.display = 'none';
 
-                // Render Custom Media Overlay (Gambar)
                 if(state.overlayImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = state.overlayImg; } else DOM.layerOverlayImg.style.display = 'none';
                 
-                // Render LED Marquee Text
                 if(state.overlayText.trim() !== '') { 
                     DOM.layerMarquee.style.display = 'block'; 
                     DOM.layerOverlayTxt.innerText = state.overlayText; 
-                    const durationMs = Math.max(10, state.overlayText.length * 0.3); // Kecepatan otomatis
+                    const durationMs = Math.max(10, state.overlayText.length * 0.3); 
                     DOM.layerOverlayTxt.style.animationDuration = `${durationMs}s`;
                 } else { DOM.layerMarquee.style.display = 'none'; }
 
+                // Mode Gelap dan Sholat
                 DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${state.brightness / 100})`;
-                
-                // Tampilkan/Sembunyikan layer sholat
-                if(state.showPrayer) DOM.layerPrayer.style.display = 'flex';
-                else DOM.layerPrayer.style.display = 'none';
+                if(state.showPrayer) DOM.layerPrayer.style.display = 'flex'; else DOM.layerPrayer.style.display = 'none';
             }
         };
 
+        // ==========================================
+        // 2. KONTROL WAKTU, JAM, DAN ALARM
+        // ==========================================
         const TimeCtrl = {
             timerEndTime: null, timerOriginalBrightness: 0, isNightModeTriggered: false, adzanTriggeredFor: '',
             init: () => { TimeCtrl.update(); setInterval(TimeCtrl.update, 1000); },
@@ -492,7 +320,6 @@
                 const hStr = String(hr).padStart(2, '0'); const mStr = String(min).padStart(2, '0'); const sStr = String(sec).padStart(2, '0');
                 const currentTimeStr = `${hStr}:${mStr}`;
 
-                // Jam Digital / Analog (Menerapkan scale dan show seconds)
                 if (state.clockType === 'digital') {
                     const timeStr = state.clockSeconds ? `${currentTimeStr}:${sStr}` : currentTimeStr;
                     DOM.layerClockArea.innerHTML = `<div class="clock-digital" style="font-family: ${state.clockFont}; color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;">${timeStr}</div>`;
@@ -502,23 +329,18 @@
                     DOM.layerClockArea.innerHTML = `<div class="clock-analog" style="border-color: ${state.clockColor}; transform: scale(${state.clockSize}); transform-origin: center;"><div class="hand hand-hour" style="transform: translateX(-50%) rotate(${hD}deg); background: ${state.clockColor};"></div><div class="hand hand-minute" style="transform: translateX(-50%) rotate(${mD}deg); background: ${state.clockColor};"></div>${secondHand}<div class="analog-center"></div></div>`;
                 } else { DOM.layerClockArea.innerHTML = ''; DOM.layerDate.innerText = ''; }
 
-                // Cek Pemicu Alarm
-                if (state.alarmActive && state.alarmTime === currentTimeStr && sec === 0 && !state.isAlarmRinging) {
+                // Pemicu Alarm Manual
+                if (state.alarmActive && state.alarmTime === currentTimeStr && sec === 0 && !AlarmCtrl.isRinging) {
                     AlarmCtrl.trigger();
                 }
 
-                // Cek Pemicu Adzan Otomatis & Countdown
+                // Pemicu Adzan & Countdown Sholat
                 if (state.showAdzan && prayerTimesData) {
                     let nextPrayerName = ''; let nextPrayerTimeDiff = Infinity;
-                    
                     for (const [name, timeStr] of Object.entries(prayerTimesData)) {
-                        // Cek Trigger Adzan
                         if (timeStr === currentTimeStr && sec === 0 && TimeCtrl.adzanTriggeredFor !== timeStr) {
-                            TimeCtrl.adzanTriggeredFor = timeStr; // Cegah loop di menit yang sama
-                            AlarmCtrl.triggerAdzan(name);
+                            TimeCtrl.adzanTriggeredFor = timeStr; AlarmCtrl.triggerAdzan(name);
                         }
-                        
-                        // Hitung Countdown
                         const [pHR, pMIN] = timeStr.split(':');
                         const pDate = new Date(); pDate.setHours(pHR, pMIN, 0, 0);
                         if (pDate > now) {
@@ -526,27 +348,261 @@
                             if (diff < nextPrayerTimeDiff) { nextPrayerTimeDiff = diff; nextPrayerName = name; }
                         }
                     }
-                    
-                    // Render Countdown jika ada waktu sholat selanjutnya
                     if (nextPrayerName !== '' && state.showPrayer) {
+                        const h = Math.floor(nextPrayerTimeDiff / 3600000);
                         const m = Math.floor((nextPrayerTimeDiff % 3600000) / 60000);
                         const s = Math.floor((nextPrayerTimeDiff % 60000) / 1000);
+                        const hDisp = h > 0 ? `${h}j ` : '';
                         DOM.layerCountdown.style.display = 'block';
-                        DOM.layerCountdown.innerText = `Menuju ${nextPrayerName}: ${m}m ${s}s`;
+                        DOM.layerCountdown.innerText = `Menuju ${nextPrayerName}: ${hDisp}${m}m ${s}s`;
                     } else { DOM.layerCountdown.style.display = 'none'; }
                 }
 
-                // Smart Auto Mode (Ganti Tema Malam Otomatis)
-                if (state.autoNightMode) {
-                    const isNight = (hr >= 18 || hr < 6);
-                    if (isNight && !TimeCtrl.isNightModeTriggered) {
-                        TimeCtrl.isNightModeTriggered = true; Object.assign(state, {theme: 'night-sky', brightness: 40, enWhiteNoise: true, masterVolume: 0.2});
-                        ThemeCtrl.render(); AudioCtrl.play(); db.collection("baby_night_settings").doc("global_state").set(state);
-                    } else if (!isNight && TimeCtrl.isNightModeTriggered) {
-                        TimeCtrl.isNightModeTriggered = false; Object.assign(state, {brightness: 0, enWhiteNoise: false});
-                        ThemeCtrl.render(); AudioCtrl.stop(); db.collection("baby_night_settings").doc("global_state").set(state);
+                // Auto Sleep Timer (Gelap)
+                if (state.sleepTimer > 0) {
+                    if (!TimeCtrl.timerEndTime) { TimeCtrl.timerOriginalBrightness = state.brightness; TimeCtrl.timerEndTime = now.getTime() + (state.sleepTimer * 60000); }
+                    const diff = TimeCtrl.timerEndTime - now.getTime();
+                    if (diff <= 0) {
+                        TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none';
+                        state.brightness = 95; ThemeCtrl.render(); AudioCtrl.stop(); IslamicCtrl.stop();
+                        if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), {brightness: 95});
+                    } else {
+                        const totalDur = state.sleepTimer * 60000; const progress = 1 - (diff / totalDur);
+                        const m = Math.floor(diff / 60000); const s = Math.floor((diff % 60000) / 1000);
+                        DOM.sleepTimerDisp.style.display = 'block'; DOM.sleepTimerDisp.innerText = `Sleep in: ${m}m ${s}s`;
+                        const targetBrightness = TimeCtrl.timerOriginalBrightness + ( (90 - TimeCtrl.timerOriginalBrightness) * progress );
+                        DOM.layerOverlay.style.backgroundColor = `rgba(0,0,0,${targetBrightness / 100})`;
+                    }
+                } else { TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none'; }
+            }
+        };
+
+        const AlarmCtrl = {
+            isRinging: false, ctx: null, osc: null, iqamahTimer: null, iqamahTimeLeft: 0,
+            trigger: () => {
+                if(AlarmCtrl.isRinging) return;
+                AlarmCtrl.isRinging = true;
+                
+                DOM.layerOverlay.classList.add('alarm-flash');
+                DOM.btnDisplayStopAlarm.style.display = 'block'; 
+                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ALARM";
+
+                if (!AlarmCtrl.ctx) AlarmCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if(AlarmCtrl.ctx.state === 'suspended') AlarmCtrl.ctx.resume();
+
+                AlarmCtrl.osc = AlarmCtrl.ctx.createOscillator(); const gain = AlarmCtrl.ctx.createGain();
+                AlarmCtrl.osc.type = 'square'; AlarmCtrl.osc.frequency.setValueAtTime(800, AlarmCtrl.ctx.currentTime); 
+                const lfo = AlarmCtrl.ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 4; lfo.connect(gain.gain); lfo.start();
+                AlarmCtrl.osc.connect(gain); gain.connect(AlarmCtrl.ctx.destination); AlarmCtrl.osc.start();
+            },
+            triggerAdzan: (namaSholat) => {
+                if(AlarmCtrl.isRinging) return; 
+                AlarmCtrl.isRinging = true;
+                
+                if(state.islamiPlayState) DOM.murattalAudio.pause();
+                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.pauseVideo();
+                
+                DOM.layerAdzanGlow.classList.add('adzan-active');
+                DOM.btnDisplayStopAlarm.style.display = 'block';
+                DOM.btnDisplayStopAlarm.innerText = "MATIKAN ADZAN " + namaSholat;
+                
+                DOM.adzanAudio.volume = state.masterVolume;
+                DOM.adzanAudio.play().catch(e=>console.log("Audio diblokir"));
+
+                DOM.adzanAudio.onended = () => {
+                    DOM.layerAdzanGlow.classList.remove('adzan-active'); DOM.btnDisplayStopAlarm.style.display = 'none'; AlarmCtrl.isRinging = false;
+                    AlarmCtrl.startIqamah();
+                };
+            },
+            startIqamah: () => {
+                AlarmCtrl.iqamahTimeLeft = 10 * 60; // 10 menit hitung mundur Iqamah
+                DOM.layerIqamah.style.display = 'block'; DOM.layerClockArea.style.display = 'none'; 
+                AlarmCtrl.iqamahTimer = setInterval(() => {
+                    AlarmCtrl.iqamahTimeLeft--;
+                    const m = String(Math.floor(AlarmCtrl.iqamahTimeLeft / 60)).padStart(2, '0');
+                    const s = String(AlarmCtrl.iqamahTimeLeft % 60).padStart(2, '0');
+                    DOM.layerIqamah.innerText = `${m}:${s}`;
+                    if(AlarmCtrl.iqamahTimeLeft <= 0) {
+                        clearInterval(AlarmCtrl.iqamahTimer); DOM.layerIqamah.style.display = 'none'; DOM.layerClockArea.style.display = 'flex';
+                        if(state.islamiPlayState) DOM.murattalAudio.play();
+                        if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.playVideo();
+                    }
+                }, 1000);
+            },
+            stopLocal: () => {
+                AlarmCtrl.isRinging = false; clearInterval(AlarmCtrl.iqamahTimer);
+                DOM.layerOverlay.classList.remove('alarm-flash'); DOM.layerAdzanGlow.classList.remove('adzan-active'); 
+                DOM.layerIqamah.style.display = 'none'; DOM.layerClockArea.style.display = 'flex';
+                DOM.btnDisplayStopAlarm.style.display = 'none'; 
+                DOM.adzanAudio.pause(); DOM.adzanAudio.currentTime = 0;
+                if(AlarmCtrl.osc) { try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){} }
+                
+                if(state.islamiPlayState) DOM.murattalAudio.play(); 
+                if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.playVideo();
+            },
+            stopGlobal: () => {
+                AlarmCtrl.stopLocal(); 
+                state.alarmActive = false; state.isAlarmRinging = false;
+                if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), { isAlarmRinging: false, alarmActive: false });
+            }
+        };
+
+        // ==========================================
+        // 3. FITUR ISLAMI & QURAN
+        // ==========================================
+        const IslamicCtrl = {
+            ayahs: [], currentIdx: 0, isPlaying: false, currentSurahRendered: '',
+            fetchAndPlay: async () => {
+                if (!state.islamiPlayState) { IslamicCtrl.stop(); return; }
+                if (IslamicCtrl.currentSurahRendered === state.islamiSurah && IslamicCtrl.isPlaying) return; 
+                
+                IslamicCtrl.stop(); IslamicCtrl.isPlaying = true; DOM.layerQuran.className = '';
+                DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
+                
+                try {
+                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`);
+                    const data = await res.json();
+                    if(data.code === 200) {
+                        IslamicCtrl.ayahs = data.data.ayahs; IslamicCtrl.currentIdx = 0; IslamicCtrl.currentSurahRendered = state.islamiSurah;
+                        IslamicCtrl.playAyah();
+                    }
+                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Koneksi API Gagal.</div>'; }
+            },
+            applyTransitionClass: () => {
+                DOM.layerQuran.className = 'q-fade'; // Default base
+                if(state.islamiTrans === 'fade') DOM.layerQuran.className = 'q-fade';
+                else if(state.islamiTrans === 'slide') DOM.layerQuran.className = 'q-slide';
+                else if(state.islamiTrans === 'glow') DOM.layerQuran.className = 'q-glow';
+                else if(state.islamiTrans === 'type') DOM.layerQuran.className = 'q-type';
+            },
+            playAyah: () => {
+                if(!state.islamiPlayState || IslamicCtrl.ayahs.length === 0) return;
+                
+                if(IslamicCtrl.currentIdx >= IslamicCtrl.ayahs.length) {
+                    if (state.islamiPlaylistMode === 'single') IslamicCtrl.currentIdx = 0; 
+                    else if (state.islamiPlaylistMode === 'playlist') {
+                        let nextS = parseInt(state.islamiSurah) + 1; if(nextS > 114) nextS = 1;
+                        state.islamiSurah = nextS.toString(); IslamicCtrl.fetchAndPlay(); return;
+                    } else if (state.islamiPlaylistMode === 'random') {
+                        const r = Math.floor(Math.random() * 114) + 1;
+                        state.islamiSurah = r.toString(); IslamicCtrl.fetchAndPlay(); return;
                     }
                 }
+                
+                IslamicCtrl.applyTransitionClass();
+                DOM.layerQuran.classList.remove('show');
+                const ayahObj = IslamicCtrl.ayahs[IslamicCtrl.currentIdx];
+                
+                setTimeout(() => {
+                    let textHTML = ayahObj.text;
+                    if(state.islamiTrans === 'type') {
+                        textHTML = textHTML.split('').map((char, i) => `<span style="animation-delay:${i*0.05}s">${char}</span>`).join('');
+                    }
+
+                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.islamiFont}; font-size:${state.islamiSize}rem;">${textHTML}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
+                    void DOM.layerQuran.offsetWidth; 
+                    DOM.layerQuran.classList.add('show');
+                    
+                    DOM.murattalAudio.src = ayahObj.audio; DOM.murattalAudio.volume = state.masterVolume;
+                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser"));
+                    
+                    DOM.murattalAudio.onended = () => { IslamicCtrl.currentIdx++; IslamicCtrl.playAyah(); };
+                }, 800);
+            },
+            stop: () => { IslamicCtrl.isPlaying = false; DOM.murattalAudio.pause(); DOM.layerQuran.innerHTML = ''; DOM.layerQuran.className = ''; IslamicCtrl.currentSurahRendered = ''; }
+        };
+
+        const QuranTextCtrl = {
+            ayahs: [], currentIdx: 0, timer: null, currentSurahRendered: '',
+            fetchAndRender: async () => {
+                QuranTextCtrl.stop();
+                if (!state.showQuran || state.islamiPlayState) return; 
+                
+                DOM.layerQuran.style.opacity = 1; DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Teks Ayat...</div>';
+                try {
+                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
+                    const data = await res.json();
+                    if(data.code === 200) {
+                        QuranTextCtrl.ayahs = data.data.ayahs; QuranTextCtrl.currentIdx = 0; QuranTextCtrl.currentSurahRendered = state.quranSurah;
+                        QuranTextCtrl.loopAyah();
+                    }
+                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Gagal memuat teks.</div>'; }
+            },
+            loopAyah: () => {
+                if(!state.showQuran || state.islamiPlayState || QuranTextCtrl.ayahs.length === 0) return;
+                if(QuranTextCtrl.currentIdx >= QuranTextCtrl.ayahs.length) QuranTextCtrl.currentIdx = 0; 
+                
+                const ayahObj = QuranTextCtrl.ayahs[QuranTextCtrl.currentIdx];
+                DOM.layerQuran.style.opacity = 0; 
+                setTimeout(() => {
+                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
+                    DOM.layerQuran.style.opacity = 1; 
+                    const durationMs = (ayahObj.text.length * state.quranSpeed) + 1500; 
+                    QuranTextCtrl.currentIdx++;
+                    QuranTextCtrl.timer = setTimeout(QuranTextCtrl.loopAyah, durationMs);
+                }, 800);
+            },
+            stop: () => { clearTimeout(QuranTextCtrl.timer); if(!state.islamiPlayState){ DOM.layerQuran.innerHTML = ''; DOM.layerQuran.style.opacity = 0; } QuranTextCtrl.currentSurahRendered = ''; }
+        };
+
+        // ==========================================
+        // 4. YOUTUBE, AUDIO & GEO
+        // ==========================================
+        let ytPlayerReady = false; let ytPlayer = null;
+        window.onYouTubeIframeAPIReady = () => {
+            ytPlayer = new YT.Player('youtube-player', {
+                height: '0', width: '0', videoId: state.ytVideoId,
+                playerVars: { 'playsinline': 1, 'loop': 1, 'playlist': state.ytVideoId },
+                events: { 'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); if(state.ytPlayState) ytPlayer.playVideo(); } }
+            });
+        };
+        function loadYouTubeScript() { let tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; let firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag); }
+
+        const AudioCtrl = {
+            ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
+            initCtx: () => { if (!AudioCtrl.ctx) { AudioCtrl.ctx = new (window.AudioContext || window.webkitAudioContext)(); AudioCtrl.masterGain = AudioCtrl.ctx.createGain(); AudioCtrl.masterGain.connect(AudioCtrl.ctx.destination); } },
+            createWhiteNoise: (freq = 600) => {
+                const bufferSize = AudioCtrl.ctx.sampleRate * 2; const buffer = AudioCtrl.ctx.createBuffer(1, bufferSize, AudioCtrl.ctx.sampleRate);
+                const output = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                const noise = AudioCtrl.ctx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+                const filter = AudioCtrl.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = freq; noise.connect(filter);
+                return { src: noise, out: filter };
+            },
+            createOcean: () => {
+                const wn = AudioCtrl.createWhiteNoise(300); 
+                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.08; 
+                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
+                return { src: wn.src, out: lfoGain };
+            },
+            createRain: () => {
+                const wn = AudioCtrl.createWhiteNoise(1200); 
+                const lfo = AudioCtrl.ctx.createOscillator(); lfo.type = 'triangle'; lfo.frequency.value = 15; 
+                const lfoGain = AudioCtrl.ctx.createGain(); lfo.connect(lfoGain.gain); wn.out.connect(lfoGain); lfo.start();
+                return { src: wn.src, out: lfoGain };
+            },
+            startHeartbeat: (gainNode) => {
+                AudioCtrl.heartbeatInterval = setInterval(() => {
+                    if(AudioCtrl.ctx.state !== 'running') return;
+                    const osc = AudioCtrl.ctx.createOscillator(); const env = AudioCtrl.ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(40, AudioCtrl.ctx.currentTime); 
+                    env.gain.setValueAtTime(0, AudioCtrl.ctx.currentTime); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.1); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.3); env.gain.linearRampToValueAtTime(1, AudioCtrl.ctx.currentTime + 0.4); env.gain.linearRampToValueAtTime(0, AudioCtrl.ctx.currentTime + 0.6); 
+                    osc.connect(env); env.connect(gainNode); osc.start(AudioCtrl.ctx.currentTime); osc.stop(AudioCtrl.ctx.currentTime + 0.7);
+                }, 1200); 
+            },
+            play: () => {
+                AudioCtrl.stop(); 
+                AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
+                AudioCtrl.masterGain.gain.value = state.masterVolume;
+                if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(600); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
+                if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
+                if (state.enRain) { const rn = AudioCtrl.createRain(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volRain; rn.out.connect(vol).connect(AudioCtrl.masterGain); rn.src.start(); AudioCtrl.nodes['rn'] = rn.src; }
+                if (state.enHeartbeat) { const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volHeartbeat; vol.connect(AudioCtrl.masterGain); AudioCtrl.startHeartbeat(vol); }
+            },
+            stop: () => { Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} }); AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval); },
+            updateVolumes: () => {
+                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
+                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
+                DOM.murattalAudio.volume = state.masterVolume; DOM.adzanAudio.volume = state.masterVolume;
             }
         };
 
@@ -556,67 +612,44 @@
                     const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${state.lat}&longitude=${state.lng}&method=11`);
                     const data = await res.json(); 
                     prayerTimesData = { Subuh: data.data.timings.Fajr, Dzuhur: data.data.timings.Dhuhr, Ashar: data.data.timings.Asr, Maghrib: data.data.timings.Maghrib, Isya: data.data.timings.Isha };
-                    
-                    document.getElementById('pray-Fajr').innerText = prayerTimesData.Subuh; 
-                    document.getElementById('pray-Dhuhr').innerText = prayerTimesData.Dzuhur; 
-                    document.getElementById('pray-Asr').innerText = prayerTimesData.Ashar; 
-                    document.getElementById('pray-Maghrib').innerText = prayerTimesData.Maghrib; 
-                    document.getElementById('pray-Isha').innerText = prayerTimesData.Isya;
+                    document.getElementById('pray-Fajr').innerText = prayerTimesData.Subuh; document.getElementById('pray-Dhuhr').innerText = prayerTimesData.Dzuhur; document.getElementById('pray-Asr').innerText = prayerTimesData.Ashar; document.getElementById('pray-Maghrib').innerText = prayerTimesData.Maghrib; document.getElementById('pray-Isha').innerText = prayerTimesData.Isya;
                 } catch (e) { console.error("API Sholat error"); }
             }
         };
 
-        const GestureCtrl = {
-            touchStartX: 0, lastTap: 0,
-            init: () => {
-                window.addEventListener('touchstart', e => GestureCtrl.touchStartX = e.changedTouches[0].screenX);
-                window.addEventListener('touchend', e => {
-                    const endX = e.changedTouches[0].screenX; const diff = endX - GestureCtrl.touchStartX;
-                    if (Math.abs(diff) > 100) {
-                        const themes = ['night-sky', 'ocean', 'forest', 'sunset', 'aurora', 'galaxy', 'rain', 'snow', 'fire', 'underwater', 'clouds', 'matrix', 'blank']; let currIdx = themes.indexOf(state.theme);
-                        if(diff > 0) currIdx = (currIdx - 1 + themes.length) % themes.length; else currIdx = (currIdx + 1) % themes.length; 
-                        state.theme = themes[currIdx]; ThemeCtrl.render(); db.collection("baby_night_settings").doc("global_state").set(state);
-                    }
-                    const now = new Date().getTime();
-                    if(now - GestureCtrl.lastTap < 300 && Math.abs(diff) < 20) {
-                        if(Object.keys(AudioCtrl.nodes).length > 0) AudioCtrl.stop(); else AudioCtrl.play();
-                    }
-                    GestureCtrl.lastTap = now;
-                });
-            }
-        };
-
-        // Mulai Aplikasi Display
+        // ==========================================
+        // INISIALISASI DISPLAY PROYEKTOR
+        // ==========================================
         function startDisplay() {
-            // Minta Izin User Dulu (Klik Layar) agar Video/Audio bisa autoplay
             DOM.startOverlay.addEventListener('click', () => {
                 DOM.startOverlay.style.display = 'none';
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
                 
-                // Mulai Listener Firebase
-                db.collection("baby_night_settings").doc("global_state").onSnapshot((docSnap) => {
-                    if (docSnap.exists) {
-                        const data = docSnap.data();
-                        Object.assign(state, data); 
-                        ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
-                        
-                        // Handler Mode Teks Biasa vs Mode Islami Audio
-                        if(state.islamiPlayState) { QuranTextCtrl.stop(); IslamicCtrl.fetchAndPlay(); }
-                        else { IslamicCtrl.stop(); if(state.showQuran && QuranTextCtrl.currentSurahRendered !== state.quranSurah) QuranTextCtrl.fetchAndRender(); else if (!state.showQuran) QuranTextCtrl.stop(); }
-                        
-                        if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-                            if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
-                            if(state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
+                if (window.firebaseDb) {
+                    window.firebaseOnSnapshot(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), (docSnap) => {
+                        if (docSnap.exists()) {
+                            Object.assign(state, docSnap.data()); 
+                            ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
+                            
+                            // Eksekusi Logika Quran Berdasarkan State Admin
+                            if(state.islamiPlayState) { QuranTextCtrl.stop(); IslamicCtrl.fetchAndPlay(); }
+                            else { IslamicCtrl.stop(); if(state.showQuran && QuranTextCtrl.currentSurahRendered !== state.quranSurah) QuranTextCtrl.fetchAndRender(); else if (!state.showQuran) QuranTextCtrl.stop(); }
+                            
+                            // Eksekusi Logika Youtube
+                            if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+                                if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
+                                if(state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
+                            }
+                            
+                            // Sinkronisasi Alarm Layar
+                            if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
+                            else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
                         }
-                        
-                        if(state.isAlarmRinging && !AlarmCtrl.isRinging) AlarmCtrl.trigger();
-                        else if(!state.isAlarmRinging && AlarmCtrl.isRinging) AlarmCtrl.stopLocal();
-                    }
-                });
+                    });
+                }
 
-                ThemeCtrl.render(); TimeCtrl.init(); LocationCtrl.fetchPrayer(); GestureCtrl.init(); loadYouTubeScript();
+                ThemeCtrl.render(); TimeCtrl.init(); LocationCtrl.fetchPrayer(); loadYouTubeScript();
                 setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
-                
                 DOM.btnDisplayStopAlarm.addEventListener('click', AlarmCtrl.stopGlobal);
             });
         }
