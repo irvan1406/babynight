@@ -132,10 +132,10 @@
     </style>
 </head>
 <body>
-    <!-- Overlay Pemancing Interaksi -->
+    <!-- Overlay Pemancing Interaksi (WAJIB UNTUK MEMULAI AUDIO BROWSER) -->
     <div id="start-overlay">
         <h1>👆 TAP UNTUK MEMULAI PROYEKTOR</h1>
-        <p>Aplikasi butuh interaksi agar audio otomatis dapat diputar.</p>
+        <p>Aplikasi butuh interaksi Anda untuk membuka kunci Audio Otomatis (Murottal & Youtube).</p>
     </div>
 
     <!-- Efek dan Overlay Interaktif -->
@@ -162,7 +162,7 @@
         <div id="quran-layer"></div>
         <div id="iqamah-layer">00:00</div>
         
-        <!-- Waktu & Sholat -->
+        <!-- Waktu & Sholat (Dibuat Stabil Tidak Goyang) -->
         <div id="clock-layer">
             <div id="clock-render-area"></div>
             <div id="date-display" class="clock-date"></div>
@@ -183,7 +183,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Ganti dengan Config milik Anda yang baru
+        // Konfigurasi Database Anda
         const firebaseConfig = {
           apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
           authDomain: "bbynight-d2bb0.firebaseapp.com",
@@ -207,7 +207,7 @@
     </script>
 
     <script>
-        // State Penampung Global Data dari Admin
+        // State Penampung Global Data (Default)
         const defaultState = {
             theme: 'night-sky', customBgImg: '', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
             clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
@@ -244,7 +244,7 @@
                 DOM.layerTheme.innerHTML = ''; DOM.layerTheme.className = '';
                 if(state.performanceMode) document.body.classList.add('performance-mode'); else document.body.classList.remove('performance-mode');
 
-                if (state.theme === 'gallery' && state.customBgImg !== '') {
+                if (state.theme === 'gallery' && state.customBgImg && state.customBgImg.trim() !== '') {
                     DOM.layerTheme.style.background = `url(${state.customBgImg})`; DOM.layerTheme.style.backgroundSize = 'cover'; DOM.layerTheme.style.backgroundPosition = 'center';
                 } else if (state.theme === 'custom') {
                     DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
@@ -283,18 +283,24 @@
                     DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 }
 
-                // Render Elemen Media
-                if(state.babyName.trim() !== '') { 
-                    DOM.layerBabyName.style.display = 'block'; DOM.layerBabyName.innerText = state.babyName; 
-                    DOM.layerBabyName.style.fontFamily = state.babyFont; DOM.layerBabyName.style.color = state.babyColor;
+                // Render Elemen Teks (Dengan Fallback Undefined Fix)
+                const safeName = state.babyName || '';
+                if(safeName.trim() !== '') { 
+                    DOM.layerBabyName.style.display = 'block'; 
+                    DOM.layerBabyName.innerText = safeName; 
+                    DOM.layerBabyName.style.fontFamily = state.babyFont || "'Segoe UI', sans-serif"; 
+                    DOM.layerBabyName.style.color = state.babyColor || "#ffffff";
                 } else DOM.layerBabyName.style.display = 'none';
 
-                if(state.overlayImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = state.overlayImg; } else DOM.layerOverlayImg.style.display = 'none';
+                const safeImg = state.overlayImg || '';
+                if(safeImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = safeImg; } 
+                else DOM.layerOverlayImg.style.display = 'none';
                 
-                if(state.overlayText.trim() !== '') { 
+                const safeText = state.overlayText || '';
+                if(safeText.trim() !== '') { 
                     DOM.layerMarquee.style.display = 'block'; 
-                    DOM.layerOverlayTxt.innerText = state.overlayText; 
-                    const durationMs = Math.max(10, state.overlayText.length * 0.3); 
+                    DOM.layerOverlayTxt.innerText = safeText; 
+                    const durationMs = Math.max(10, safeText.length * 0.3); 
                     DOM.layerOverlayTxt.style.animationDuration = `${durationMs}s`;
                 } else { DOM.layerMarquee.style.display = 'none'; }
 
@@ -365,7 +371,7 @@
                     if (diff <= 0) {
                         TimeCtrl.timerEndTime = null; DOM.sleepTimerDisp.style.display = 'none';
                         state.brightness = 95; ThemeCtrl.render(); AudioCtrl.stop(); IslamicCtrl.stop();
-                        if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), {brightness: 95});
+                        if(window.firebaseDb && window.firebaseUpdateDoc) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), {brightness: 95});
                     } else {
                         const totalDur = state.sleepTimer * 60000; const progress = 1 - (diff / totalDur);
                         const m = Math.floor(diff / 60000); const s = Math.floor((diff % 60000) / 1000);
@@ -443,7 +449,7 @@
             stopGlobal: () => {
                 AlarmCtrl.stopLocal(); 
                 state.alarmActive = false; state.isAlarmRinging = false;
-                if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), { isAlarmRinging: false, alarmActive: false });
+                if(window.firebaseDb && window.firebaseUpdateDoc) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), { isAlarmRinging: false, alarmActive: false });
             }
         };
 
@@ -504,7 +510,7 @@
                     DOM.layerQuran.classList.add('show');
                     
                     DOM.murattalAudio.src = ayahObj.audio; DOM.murattalAudio.volume = state.masterVolume;
-                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser"));
+                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser, ketuk layar!"));
                     
                     DOM.murattalAudio.onended = () => { IslamicCtrl.currentIdx++; IslamicCtrl.playAyah(); };
                 }, 800);
@@ -621,10 +627,15 @@
         // INISIALISASI DISPLAY PROYEKTOR
         // ==========================================
         function startDisplay() {
+            // Minta Izin User dan Pancing Semua Audio Browser Agar Tidak Diblokir
             DOM.startOverlay.addEventListener('click', () => {
                 DOM.startOverlay.style.display = 'none';
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
                 
+                // MENGAKALI AUTOPLAY BROWSER: Putar lalu pause semua tag audio untuk membuka kuncinya
+                DOM.murattalAudio.play().then(() => DOM.murattalAudio.pause()).catch(e => {});
+                DOM.adzanAudio.play().then(() => DOM.adzanAudio.pause()).catch(e => {});
+
                 if (window.firebaseDb) {
                     window.firebaseOnSnapshot(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), (docSnap) => {
                         if (docSnap.exists()) {
@@ -638,7 +649,7 @@
                             // Eksekusi Logika Youtube
                             if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
                                 if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
-                                if(state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
+                                if(state.ytVideoId && state.ytVideoId.trim() !== '' && state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
                             }
                             
                             // Sinkronisasi Alarm Layar
