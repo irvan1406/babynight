@@ -18,7 +18,7 @@
         /* Layar Awal (Tap to Start) - Wajib untuk memancing izin Audio Browser */
         #start-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         #start-overlay h1 { font-size: 3rem; color: #4facfe; animation: pulse 2s infinite; text-align: center; padding: 20px;}
-        #start-overlay p { color: #888; margin-top: 10px; font-size: 1.2rem; }
+        #start-overlay p { color: #888; margin-top: 10px; font-size: 1.2rem; text-align: center; max-width: 80%;}
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
 
         /* Custom Overlay Media (Gambar Kanan Atas) */
@@ -27,11 +27,11 @@
 
         /* Layer Teks LED Berjalan (Di bawah, di atas jadwal sholat) */
         #marquee-layer { position: absolute; bottom: 120px; width: 100%; overflow: hidden; white-space: nowrap; z-index: 3; pointer-events: none; }
-        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); font-family: 'Segoe UI', sans-serif;}
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        .marquee-text { display: inline-block; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); font-family: 'Segoe UI', sans-serif;}
+        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
         /* Nama Bayi */
-        #baby-name-layer { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 3; font-size: 2.5rem; letter-spacing: 5px; opacity: 0.8; animation: floatName 10s infinite ease-in-out; text-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; }
+        #baby-name-layer { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 3; font-size: 2.5rem; letter-spacing: 5px; opacity: 0.8; animation: floatName 10s infinite ease-in-out; text-shadow: 0 0 15px rgba(0,0,0,0.8); pointer-events: none; }
         @keyframes floatName { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
         /* Al-Quran (Tampil Per Ayat - Posisi Atas/Tengah) */
@@ -135,7 +135,7 @@
     <!-- Overlay Pemancing Interaksi (WAJIB UNTUK MEMULAI AUDIO BROWSER) -->
     <div id="start-overlay">
         <h1>👆 TAP UNTUK MEMULAI PROYEKTOR</h1>
-        <p>Aplikasi butuh interaksi Anda untuk membuka kunci Audio Otomatis (Murottal & Youtube).</p>
+        <p>Aplikasi butuh interaksi Anda untuk membuka kunci Audio Otomatis (Murottal & Youtube) agar tidak diblokir browser.</p>
     </div>
 
     <!-- Efek dan Overlay Interaktif -->
@@ -156,6 +156,8 @@
         <!-- Media Tambahan -->
         <div id="baby-name-layer" style="display:none;"></div>
         <div id="custom-overlay-layer"><img id="overlay-img-render" style="display:none;" src=""></div>
+        
+        <!-- Teks LED Marquee -->
         <div id="marquee-layer" style="display:none;"><div id="overlay-text-render" class="marquee-text"></div></div>
 
         <!-- Mode Islami (Al-Quran & Iqamah) -->
@@ -283,8 +285,8 @@
                     DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 }
 
-                // Render Elemen Teks (Dengan Fallback Undefined Fix)
-                const safeName = state.babyName || '';
+                // Render Elemen Teks & Media (Dengan Perlindungan Undefined/Crash)
+                const safeName = state.babyName ? String(state.babyName) : '';
                 if(safeName.trim() !== '') { 
                     DOM.layerBabyName.style.display = 'block'; 
                     DOM.layerBabyName.innerText = safeName; 
@@ -292,11 +294,12 @@
                     DOM.layerBabyName.style.color = state.babyColor || "#ffffff";
                 } else DOM.layerBabyName.style.display = 'none';
 
-                const safeImg = state.overlayImg || '';
+                const safeImg = state.overlayImg ? String(state.overlayImg) : '';
                 if(safeImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = safeImg; } 
                 else DOM.layerOverlayImg.style.display = 'none';
                 
-                const safeText = state.overlayText || '';
+                // Perbaikan Marquee Teks LED
+                const safeText = state.overlayText ? String(state.overlayText) : '';
                 if(safeText.trim() !== '') { 
                     DOM.layerMarquee.style.display = 'block'; 
                     DOM.layerOverlayTxt.innerText = safeText; 
@@ -412,7 +415,7 @@
                 DOM.btnDisplayStopAlarm.style.display = 'block';
                 DOM.btnDisplayStopAlarm.innerText = "MATIKAN ADZAN " + namaSholat;
                 
-                DOM.adzanAudio.volume = state.masterVolume;
+                DOM.adzanAudio.volume = Number(state.masterVolume) || 0.5;
                 DOM.adzanAudio.play().catch(e=>console.log("Audio diblokir"));
 
                 DOM.adzanAudio.onended = () => {
@@ -443,7 +446,7 @@
                 DOM.adzanAudio.pause(); DOM.adzanAudio.currentTime = 0;
                 if(AlarmCtrl.osc) { try { AlarmCtrl.osc.stop(); AlarmCtrl.osc.disconnect(); } catch(e){} }
                 
-                if(state.islamiPlayState) DOM.murattalAudio.play(); 
+                if(state.islamiPlayState) DOM.murattalAudio.play().catch(()=>{}); 
                 if(ytPlayerReady && ytPlayer && state.ytPlayState) ytPlayer.playVideo();
             },
             stopGlobal: () => {
@@ -466,16 +469,28 @@
                 DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
                 
                 try {
-                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`);
+                    // PERBAIKAN BUG AYAT KURSI (Surah 255 tidak ada, diganti menjadi fetch spesifik 1 ayat)
+                    let apiUrl = `https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`;
+                    let isSingleAyah = false;
+                    if(String(state.islamiSurah) === '255') {
+                        apiUrl = `https://api.alquran.cloud/v1/ayah/2:255/ar.alafasy`;
+                        isSingleAyah = true;
+                    }
+
+                    const res = await fetch(apiUrl);
                     const data = await res.json();
+                    
                     if(data.code === 200) {
-                        IslamicCtrl.ayahs = data.data.ayahs; IslamicCtrl.currentIdx = 0; IslamicCtrl.currentSurahRendered = state.islamiSurah;
+                        IslamicCtrl.ayahs = isSingleAyah ? [data.data] : data.data.ayahs;
+                        IslamicCtrl.currentIdx = 0; IslamicCtrl.currentSurahRendered = state.islamiSurah;
                         IslamicCtrl.playAyah();
+                    } else {
+                        DOM.layerQuran.innerHTML = '<div style="color:red;">Error: Surah tidak ditemukan.</div>';
                     }
                 } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Koneksi API Gagal.</div>'; }
             },
             applyTransitionClass: () => {
-                DOM.layerQuran.className = 'q-fade'; // Default base
+                DOM.layerQuran.className = 'q-fade'; 
                 if(state.islamiTrans === 'fade') DOM.layerQuran.className = 'q-fade';
                 else if(state.islamiTrans === 'slide') DOM.layerQuran.className = 'q-slide';
                 else if(state.islamiTrans === 'glow') DOM.layerQuran.className = 'q-glow';
@@ -509,8 +524,8 @@
                     void DOM.layerQuran.offsetWidth; 
                     DOM.layerQuran.classList.add('show');
                     
-                    DOM.murattalAudio.src = ayahObj.audio; DOM.murattalAudio.volume = state.masterVolume;
-                    DOM.murattalAudio.play().catch(e=>console.log("Audio diblokir browser, ketuk layar!"));
+                    DOM.murattalAudio.src = ayahObj.audio; DOM.murattalAudio.volume = Number(state.masterVolume) || 0.5;
+                    DOM.murattalAudio.play().catch(e=>console.log("Audio Murattal diblokir browser, ketuk layar!"));
                     
                     DOM.murattalAudio.onended = () => { IslamicCtrl.currentIdx++; IslamicCtrl.playAyah(); };
                 }, 800);
@@ -526,11 +541,23 @@
                 
                 DOM.layerQuran.style.opacity = 1; DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Teks Ayat...</div>';
                 try {
-                    const res = await fetch(`https://api.alquran.cloud/v1/surah/${state.quranSurah}`);
+                    // PERBAIKAN BUG AYAT KURSI (Teks Biasa)
+                    let apiUrl = `https://api.alquran.cloud/v1/surah/${state.quranSurah}`;
+                    let isSingleAyah = false;
+                    if(String(state.quranSurah) === '255') {
+                        apiUrl = `https://api.alquran.cloud/v1/ayah/2:255`;
+                        isSingleAyah = true;
+                    }
+
+                    const res = await fetch(apiUrl);
                     const data = await res.json();
+                    
                     if(data.code === 200) {
-                        QuranTextCtrl.ayahs = data.data.ayahs; QuranTextCtrl.currentIdx = 0; QuranTextCtrl.currentSurahRendered = state.quranSurah;
+                        QuranTextCtrl.ayahs = isSingleAyah ? [data.data] : data.data.ayahs; 
+                        QuranTextCtrl.currentIdx = 0; QuranTextCtrl.currentSurahRendered = state.quranSurah;
                         QuranTextCtrl.loopAyah();
+                    } else {
+                        DOM.layerQuran.innerHTML = '<div style="color:red;">Error: Surah tidak ditemukan.</div>';
                     }
                 } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Gagal memuat teks.</div>'; }
             },
@@ -598,7 +625,7 @@
             play: () => {
                 AudioCtrl.stop(); 
                 AudioCtrl.initCtx(); if(AudioCtrl.ctx.state === 'suspended') AudioCtrl.ctx.resume();
-                AudioCtrl.masterGain.gain.value = state.masterVolume;
+                AudioCtrl.masterGain.gain.value = Number(state.masterVolume) || 0.5;
                 if (state.enWhiteNoise) { const wn = AudioCtrl.createWhiteNoise(600); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volWhiteNoise; wn.out.connect(vol).connect(AudioCtrl.masterGain); wn.src.start(); AudioCtrl.nodes['wn'] = wn.src; }
                 if (state.enOcean) { const oc = AudioCtrl.createOcean(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volOcean; oc.out.connect(vol).connect(AudioCtrl.masterGain); oc.src.start(); AudioCtrl.nodes['oc'] = oc.src; }
                 if (state.enRain) { const rn = AudioCtrl.createRain(); const vol = AudioCtrl.ctx.createGain(); vol.gain.value = state.volRain; rn.out.connect(vol).connect(AudioCtrl.masterGain); rn.src.start(); AudioCtrl.nodes['rn'] = rn.src; }
@@ -606,9 +633,9 @@
             },
             stop: () => { Object.values(AudioCtrl.nodes).forEach(src => { try { src.stop(); src.disconnect(); } catch(e){} }); AudioCtrl.nodes = {}; clearInterval(AudioCtrl.heartbeatInterval); },
             updateVolumes: () => {
-                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(state.masterVolume, AudioCtrl.ctx.currentTime, 0.1);
-                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(state.masterVolume * 100);
-                DOM.murattalAudio.volume = state.masterVolume; DOM.adzanAudio.volume = state.masterVolume;
+                if(AudioCtrl.masterGain) AudioCtrl.masterGain.gain.setTargetAtTime(Number(state.masterVolume) || 0.5, AudioCtrl.ctx.currentTime, 0.1);
+                if(ytPlayerReady && ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume((Number(state.masterVolume) || 0.5) * 100);
+                DOM.murattalAudio.volume = Number(state.masterVolume) || 0.5; DOM.adzanAudio.volume = Number(state.masterVolume) || 0.5;
             }
         };
 
@@ -663,6 +690,12 @@
                 setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
                 DOM.btnDisplayStopAlarm.addEventListener('click', AlarmCtrl.stopGlobal);
             });
+            
+            // Pertahanan Kedua agar Audio pasti bisa terputar jika user klik di sembarang tempat
+            window.addEventListener('click', () => {
+                if(DOM.murattalAudio.paused && !IslamicCtrl.isPlaying) DOM.murattalAudio.play().then(()=>DOM.murattalAudio.pause()).catch(()=>{});
+                if(DOM.adzanAudio.paused && !AlarmCtrl.isRinging) DOM.adzanAudio.play().then(()=>DOM.adzanAudio.pause()).catch(()=>{});
+            }, {once:true});
         }
         window.onload = startDisplay;
     </script>
