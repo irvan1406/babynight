@@ -15,29 +15,28 @@
         #display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: filter 0.5s ease; }
         #theme-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden; transition: background 1s ease, filter 1s; background-size: cover; background-position: center; }
 
+        /* Youtube Background Mode */
+        #youtube-player { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1s ease; border: none; }
+        #youtube-player.show { opacity: 0.8; z-index: 1; }
+
         /* Layar Awal (Tap to Start) - Wajib untuk memancing izin Audio Browser */
         #start-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         #start-overlay h1 { font-size: 3rem; color: #4facfe; animation: pulse 2s infinite; text-align: center; padding: 20px;}
         #start-overlay p { color: #888; margin-top: 10px; font-size: 1.2rem; text-align: center; max-width: 80%;}
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } }
 
-        /* Custom Overlay Media (Gambar Kanan Atas) */
-        #custom-overlay-layer { position: absolute; top: 5%; right: 5%; z-index: 3; max-width: 30%; pointer-events: none; opacity: 0.8; }
-        #custom-overlay-layer img { max-width: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-
         /* Layer Teks LED Berjalan (Di bawah, di atas jadwal sholat) */
-        #marquee-layer { position: absolute; bottom: 120px; width: 100%; overflow: hidden; white-space: nowrap; z-index: 3; pointer-events: none; }
-        .marquee-text { display: inline-block; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); font-family: 'Segoe UI', sans-serif;}
-        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+        .marquee-container { position: absolute; bottom: 120px; width: 100vw; overflow: hidden; white-space: nowrap; z-index: 3; pointer-events: none; display: none; }
+        .marquee-text { display: inline-block; white-space: nowrap; padding-left: 100vw; animation: marquee linear infinite; font-size: 2.5rem; font-weight: bold; color: #ffd700; text-shadow: 0 2px 15px rgba(0,0,0,0.9); font-family: 'Segoe UI', sans-serif;}
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         /* Nama Bayi */
-        #baby-name-layer { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 3; font-size: 2.5rem; letter-spacing: 5px; opacity: 0.8; animation: floatName 10s infinite ease-in-out; text-shadow: 0 0 15px rgba(0,0,0,0.8); pointer-events: none; }
+        #baby-name-layer { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 3; font-size: 2.5rem; letter-spacing: 5px; opacity: 0.8; animation: floatName 10s infinite ease-in-out; text-shadow: 0 0 15px rgba(0,0,0,0.9); pointer-events: none; }
         @keyframes floatName { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
         /* Al-Quran (Tampil Per Ayat - Posisi Atas/Tengah) */
         #quran-layer { position: absolute; top: 20%; left: 10%; width: 80%; height: 30%; text-align: center; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffd700; text-shadow: 0 0 15px rgba(0,0,0,0.9); pointer-events: none; }
         
-        /* Quran Transitions CSS */
         .q-fade { opacity: 0; transition: opacity 0.8s ease; }
         .q-fade.show { opacity: 1; }
         .q-slide { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
@@ -51,7 +50,7 @@
         .quran-ayah-text { margin-bottom: 15px; line-height: 1.6; }
         .quran-translation { font-size: 1.2rem; color: #fff; opacity: 0.9; font-family: 'Segoe UI', sans-serif; margin-top: 10px;}
 
-        /* Jam Digital / Analog */
+        /* Jam Digital / Analog (Stabil Center Bawah) */
         #clock-layer { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); z-index: 3; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none; width: 100vw; display: flex; flex-direction: column; align-items: center; }
         .clock-digital { font-size: 8rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; font-variant-numeric: tabular-nums; text-align: center; transition: transform 0.3s ease, color 0.3s ease; }
         .clock-date { font-size: 1.5rem; opacity: 0.8; letter-spacing: 2px; text-align: center; transition: transform 0.3s ease; }
@@ -143,7 +142,7 @@
     <button id="display-stop-alarm">MATIKAN ALARM / ADZAN</button>
 
     <!-- Youtube & Audio Tags -->
-    <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px;"></div>
+    <iframe id="youtube-player" src="" allow="autoplay"></iframe>
     <audio id="murattal-audio"></audio>
     <audio id="adzan-audio" src="https://www.islamcan.com/audio/adhan/azan1.mp3"></audio>
 
@@ -151,12 +150,12 @@
         <!-- Visual Latar Belakang -->
         <div id="theme-layer"></div>
         
-        <!-- Media Tambahan -->
         <div id="baby-name-layer" style="display:none;"></div>
-        <div id="custom-overlay-layer"><img id="overlay-img-render" style="display:none;" src=""></div>
         
         <!-- Teks LED Marquee -->
-        <div id="marquee-layer" style="display:none;"><div id="overlay-text-render" class="marquee-text"></div></div>
+        <div id="marquee-layer" class="marquee-container" style="display:none;">
+            <div id="overlay-text-render" class="marquee-text"></div>
+        </div>
 
         <!-- Mode Islami (Al-Quran & Iqamah) -->
         <div id="quran-layer"></div>
@@ -206,19 +205,21 @@
         }
     </script>
 
+    <!-- Youtube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
         // State Penampung Global Data (Default)
         const defaultState = {
             theme: 'night-sky', customBgImg: '', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
             clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
-            weatherSync: false, cryDetect: false,
             particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
             masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8, enRain: false, volRain: 0.6,
             ytVideoId: '', ytPlayState: false,
             islamiPlayState: false, islamiSurah: '1', islamiPlaylistMode: 'playlist', islamiTrans: 'glow', islamiFont: "'Amiri', serif", islamiSize: 3, showAdzan: true,
             alarmTime: '', alarmActive: false, isAlarmRinging: false, lat: -6.2088, lng: 106.8456, 
             babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff",
-            overlayText: '', overlayImg: '', performanceMode: false
+            overlayText: '', performanceMode: false
         };
 
         let state = { ...defaultState };
@@ -228,7 +229,7 @@
             btnDisplayStopAlarm: document.getElementById('display-stop-alarm'),
             layerTheme: document.getElementById('theme-layer'), layerClockArea: document.getElementById('clock-render-area'), layerDate: document.getElementById('date-display'),
             layerPrayer: document.getElementById('prayer-layer'), layerOverlay: document.getElementById('brightness-overlay'),
-            layerBabyName: document.getElementById('baby-name-layer'), layerOverlayImg: document.getElementById('overlay-img-render'), layerOverlayTxt: document.getElementById('overlay-text-render'),
+            layerBabyName: document.getElementById('baby-name-layer'), layerOverlayTxt: document.getElementById('overlay-text-render'),
             layerMarquee: document.getElementById('marquee-layer'), layerQuran: document.getElementById('quran-layer'), layerAdzanGlow: document.getElementById('adzan-glow'),
             layerCountdown: document.getElementById('countdown-layer'), layerIqamah: document.getElementById('iqamah-layer'), sleepTimerDisp: document.getElementById('sleep-timer-display'),
             murattalAudio: document.getElementById('murattal-audio'), adzanAudio: document.getElementById('adzan-audio')
@@ -291,10 +292,6 @@
                     DOM.layerBabyName.style.fontFamily = state.babyFont || "'Segoe UI', sans-serif"; 
                     DOM.layerBabyName.style.color = state.babyColor || "#ffffff";
                 } else { DOM.layerBabyName.style.display = 'none'; }
-
-                const safeImg = state.overlayImg ? String(state.overlayImg) : '';
-                if(safeImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = safeImg; } 
-                else DOM.layerOverlayImg.style.display = 'none';
                 
                 // Perbaikan Marquee Teks LED
                 const safeText = state.overlayText ? String(state.overlayText) : '';
@@ -468,7 +465,7 @@
                 DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
                 
                 try {
-                    // Penanganan Khusus Ayat Kursi
+                    // Penanganan Khusus Ayat Kursi (Surah 2 Ayat 255) agar Murottal tidak Error
                     let apiUrl = `https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`;
                     let isSingleAyah = false;
                     if(String(state.islamiSurah) === '255') {
@@ -501,7 +498,9 @@
                 if(IslamicCtrl.currentIdx >= IslamicCtrl.ayahs.length) {
                     if (state.islamiPlaylistMode === 'single') IslamicCtrl.currentIdx = 0; 
                     else if (state.islamiPlaylistMode === 'playlist') {
-                        let nextS = parseInt(state.islamiSurah) + 1; if(nextS > 114) nextS = 1;
+                        let nextS = state.islamiSurah;
+                        if(nextS === '255') nextS = '1';
+                        else { nextS = parseInt(nextS) + 1; if(nextS > 114) nextS = 1; }
                         state.islamiSurah = nextS.toString(); IslamicCtrl.fetchAndPlay(); return;
                     } else if (state.islamiPlaylistMode === 'random') {
                         const r = Math.floor(Math.random() * 114) + 1;
@@ -538,12 +537,11 @@
         let ytPlayerReady = false; let ytPlayer = null;
         window.onYouTubeIframeAPIReady = () => {
             ytPlayer = new YT.Player('youtube-player', {
-                height: '0', width: '0', videoId: state.ytVideoId,
-                playerVars: { 'playsinline': 1, 'loop': 1, 'playlist': state.ytVideoId },
-                events: { 'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); if(state.ytPlayState) ytPlayer.playVideo(); } }
+                height: '100%', width: '100%', videoId: state.ytVideoId,
+                playerVars: { 'playsinline': 1, 'loop': 1, 'playlist': state.ytVideoId, 'controls': 0, 'disablekb': 1, 'fs': 0, 'modestbranding': 1 },
+                events: { 'onReady': () => { ytPlayerReady = true; AudioCtrl.updateVolumes(); if(state.ytPlayState) { ytPlayer.playVideo(); document.getElementById('youtube-player').classList.add('show'); } } }
             });
         };
-        function loadYouTubeScript() { let tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api"; let firstScriptTag = document.getElementsByTagName('script')[0]; firstScriptTag.parentNode.insertBefore(tag, firstScriptTag); }
 
         const AudioCtrl = {
             ctx: null, masterGain: null, nodes: {}, heartbeatInterval: null,
@@ -628,9 +626,10 @@
                             // Eksekusi Logika Quran Berdasarkan State Admin
                             if(state.islamiPlayState) { IslamicCtrl.fetchAndPlay(); } else { IslamicCtrl.stop(); }
                             
-                            // Eksekusi Logika Youtube
+                            // Eksekusi Logika Youtube Latar Penuh
                             if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-                                if(state.ytPlayState) ytPlayer.playVideo(); else ytPlayer.pauseVideo();
+                                if(state.ytPlayState) { ytPlayer.playVideo(); document.getElementById('youtube-player').classList.add('show'); } 
+                                else { ytPlayer.pauseVideo(); document.getElementById('youtube-player').classList.remove('show'); }
                                 if(state.ytVideoId && state.ytVideoId.trim() !== '' && state.ytVideoId !== ytPlayer.getVideoData().video_id) ytPlayer.loadVideoById(state.ytVideoId);
                             }
                             
@@ -641,15 +640,15 @@
                     });
                 }
 
-                ThemeCtrl.render(); TimeCtrl.init(); LocationCtrl.fetchPrayer(); loadYouTubeScript();
+                ThemeCtrl.render(); TimeCtrl.init(); LocationCtrl.fetchPrayer(); 
                 setInterval(LocationCtrl.fetchPrayer, 1000 * 60 * 60 * 12);
                 DOM.btnDisplayStopAlarm.addEventListener('click', AlarmCtrl.stopGlobal);
             });
             
             // Pertahanan Kedua agar Audio pasti bisa terputar jika user klik di sembarang tempat
             window.addEventListener('click', () => {
-                if(DOM.murattalAudio.paused && !IslamicCtrl.isPlaying) DOM.murattalAudio.play().then(()=>DOM.murattalAudio.pause()).catch(()=>{});
-                if(DOM.adzanAudio.paused && !AlarmCtrl.isRinging) DOM.adzanAudio.play().then(()=>DOM.adzanAudio.pause()).catch(()=>{});
+                if(DOM.murattalAudio.paused && IslamicCtrl.isPlaying) DOM.murattalAudio.play().catch(()=>{});
+                if(DOM.adzanAudio.paused && AlarmCtrl.isRinging) DOM.adzanAudio.play().catch(()=>{});
             }, {once:true});
         }
         window.onload = startDisplay;
