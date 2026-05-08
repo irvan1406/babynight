@@ -27,13 +27,13 @@
         .form-group label { display: block; margin-bottom: 10px; font-size: 0.9rem; color: #ccc; font-weight: 600; letter-spacing: 0.5px;}
         .form-group-flex { display: flex; align-items: center; justify-content: space-between; gap:10px; margin-bottom: 10px;}
         
-        select, input[type="range"], input[type="text"], input[type="number"], input[type="color"], input[type="time"] {
+        select, input[type="range"], input[type="text"], input[type="number"], input[type="color"], input[type="time"], input[type="file"] {
             width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; outline: none; transition: 0.3s; font-size: 1rem;
         }
         select:focus, input[type="text"]:focus { border-color: #4facfe; box-shadow: 0 0 10px rgba(79,172,254,0.3); }
         input[type="color"] { padding: 2px; height: 45px; cursor: pointer; }
         
-        .checkbox-group { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;}
         .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #4facfe; }
         .checkbox-group label { margin: 0; cursor: pointer; color:#fff;}
 
@@ -44,6 +44,7 @@
         .btn-danger { background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white; box-shadow: 0 5px 15px rgba(255,65,108,0.3); }
         .btn-danger:active { transform: scale(0.95); }
         .btn-warning { background: linear-gradient(45deg, #fceabb, #f8b500); color: #000; box-shadow: 0 5px 15px rgba(248,181,0,0.3); }
+        .btn-success { background: linear-gradient(45deg, #2ed573, #7bed9f); color: #000; box-shadow: 0 5px 15px rgba(46,213,115,0.3); }
         
         .slider-val { font-size: 0.8rem; color: #4facfe; float: right; font-weight: bold; background: rgba(79, 172, 254, 0.15); padding: 3px 10px; border-radius: 12px;}
 
@@ -52,11 +53,10 @@
         #btn-tasbih { padding: 40px; font-size: 2rem; border-radius: 50%; width: 150px; height: 150px; margin: 0 auto; display: block; background: radial-gradient(circle, #4facfe, #00f2fe); box-shadow: 0 10px 30px rgba(0,242,254,0.5); color: #000; cursor: pointer; border: none; font-weight: bold; transition: 0.1s; }
         #btn-tasbih:active { transform: scale(0.9); box-shadow: 0 5px 15px rgba(0,242,254,0.5); }
         
-        #btn-stop-alarm { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; display: none; }
+        #btn-stop-alarm-global { position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100; box-shadow: 0 10px 20px rgba(255,0,0,0.5); display: none; }
     </style>
 </head>
 <body>
-
     <div id="admin-panel">
         <div class="admin-header">
             <h2>✨ Baby Control Hub</h2>
@@ -64,7 +64,7 @@
         </div>
 
         <div class="admin-tabs">
-            <button class="tab-btn active" data-target="sec-visual">🎨 Visual</button>
+            <button class="tab-btn active" data-target="sec-visual">🎨 Tema</button>
             <button class="tab-btn" data-target="sec-text">✍️ Teks</button>
             <button class="tab-btn" data-target="sec-islami">📿 Islami</button>
             <button class="tab-btn" data-target="sec-tasbih">🤲 Tasbih</button>
@@ -78,7 +78,7 @@
             <!-- SECTION 1: VISUALS -->
             <div id="sec-visual" class="admin-section active">
                 <div class="form-group">
-                    <label>Tema Latar (14 Pilihan)</label>
+                    <label>Pilih Tema Latar (14 Pilihan)</label>
                     <select id="set-theme">
                         <option value="night-sky">🌌 Night Sky (Bintang)</option>
                         <option value="ocean">🌊 Ocean (Ombak)</option>
@@ -92,15 +92,16 @@
                         <option value="underwater">🐡 Underwater</option>
                         <option value="clouds">☁️ Moving Clouds</option>
                         <option value="matrix">💻 The Matrix</option>
-                        <option value="gallery">🖼️ Custom Foto/Gallery (URL)</option>
+                        <option value="gallery">🖼️ BROWSE GALERI HP/LAPTOP</option>
                         <option value="custom">🛠️ Custom Warna Murni</option>
                     </select>
                 </div>
                 
                 <div id="custom-gallery-editor" style="display:none;">
-                    <div class="form-group">
-                        <label>URL Foto Wallpaper / GIF</label>
-                        <input type="text" id="set-bg-img" placeholder="https://contoh.com/foto.jpg">
+                    <div class="form-group" style="background: rgba(79, 172, 254, 0.1); border-color: #4facfe;">
+                        <label style="color:#4facfe;">Upload Wallpaper dari Galeri</label>
+                        <input type="file" id="set-bg-file" accept="image/*">
+                        <p style="font-size:0.75rem; color:#aaa; margin-top:5px;">Foto akan dikompres otomatis agar sinkron cepat.</p>
                     </div>
                 </div>
 
@@ -120,9 +121,9 @@
                     <label>Kepadatan Partikel <span class="slider-val" id="val-particle">60</span></label>
                     <input type="range" id="set-particle" min="0" max="200" value="60">
                 </div>
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="set-performance">
-                    <label for="set-performance">Mode Hemat CPU (Matikan Blur Animasi)</label>
+                <div class="form-group">
+                    <label>Kecepatan Animasi <span class="slider-val" id="val-speed">1x</span></label>
+                    <input type="range" id="set-speed" min="0.1" max="3" step="0.1" value="1">
                 </div>
             </div>
 
@@ -147,13 +148,9 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                     <label>Teks LED Berjalan (Marquee Bawah)</label>
                     <input type="text" id="set-overlay-text" placeholder="Misal: Selamat malam semuanya...">
-                </div>
-                <div class="form-group">
-                    <label>Media Gambar Pojok Kanan (Link URL)</label>
-                    <input type="text" id="set-overlay-img" placeholder="https://domain.com/logo.png">
                 </div>
             </div>
 
@@ -165,16 +162,16 @@
                     
                     <label>Pilih Surah / Juz</label>
                     <select id="set-islami-surah" style="margin-bottom:10px;">
-                        <optgroup label="Surah Populer">
+                        <optgroup label="Surah Populer Khusus">
                             <option value="1">Al-Fatihah</option>
-                            <option value="255">Ayat Kursi (Al-Baqarah 255)</option>
+                            <option value="255">Ayat Kursi (Full 1 Ayat)</option>
                             <option value="32">As-Sajdah</option>
                             <option value="36">Ya Sin</option>
                             <option value="55">Ar-Rahman</option>
                             <option value="56">Al-Waqi'ah</option>
                             <option value="67">Al-Mulk (Tabarak)</option>
                         </optgroup>
-                        <optgroup label="Juz 30 (Amma)" id="juz30-options">
+                        <optgroup label="Juz 30 (Juz Amma) Full" id="juz30-options">
                             <!-- Injeksi JS -->
                         </optgroup>
                     </select>
@@ -189,7 +186,7 @@
                             </select>
                         </div>
                         <div style="flex:1">
-                            <label>Efek Transisi</label>
+                            <label>Efek Animasi</label>
                             <select id="set-islami-trans">
                                 <option value="glow">Glow Breathing ✨</option>
                                 <option value="fade">Fade In/Out</option>
@@ -253,7 +250,6 @@
                         <input type="text" id="set-yt-id" placeholder="ID Video (Misal: dQw4w9WgXcQ)">
                         <button class="btn btn-primary" id="btn-load-yt" style="width:auto;">Save</button>
                     </div>
-                    <p style="font-size: 0.75rem; color:#aaa; margin-top:5px;">Video akan di-loop tanpa memunculkan gambar.</p>
                     <div class="btn-group" style="margin-top:10px;">
                         <button class="btn btn-success" id="btn-yt-play">▶ Play YT</button>
                         <button class="btn btn-warning" id="btn-yt-pause">⏸ Pause YT</button>
@@ -261,17 +257,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Sintesis Ambience Tidur Bayi (White Noise)</label>
-                    <div class="checkbox-group" style="margin-bottom:5px;"><input type="checkbox" id="tgl-whitenoise"> <label>Kipas / White Noise</label></div>
+                    <label>Suara Alam (Generator Latar)</label>
+                    <div class="checkbox-group"><input type="checkbox" id="tgl-whitenoise"> <label>White Noise / Kipas</label></div>
                     <input type="range" id="vol-whitenoise" min="0" max="100" value="50">
                     
-                    <div class="checkbox-group" style="margin:15px 0 5px 0;"><input type="checkbox" id="tgl-ocean"> <label>Ombak Laut Lembut</label></div>
+                    <div class="checkbox-group" style="margin-top:10px;"><input type="checkbox" id="tgl-ocean"> <label>Ombak Laut Lembut</label></div>
                     <input type="range" id="vol-ocean" min="0" max="100" value="50">
                     
-                    <div class="checkbox-group" style="margin:15px 0 5px 0;"><input type="checkbox" id="tgl-heartbeat"> <label>Detak Jantung Ibu</label></div>
+                    <div class="checkbox-group" style="margin-top:10px;"><input type="checkbox" id="tgl-heartbeat"> <label>Detak Jantung Ibu</label></div>
                     <input type="range" id="vol-heartbeat" min="0" max="100" value="80">
 
-                    <div class="checkbox-group" style="margin:15px 0 5px 0;"><input type="checkbox" id="tgl-rain"> <label>Rintik Hujan</label></div>
+                    <div class="checkbox-group" style="margin-top:10px;"><input type="checkbox" id="tgl-rain"> <label>Rintik Hujan</label></div>
                     <input type="range" id="vol-rain" min="0" max="100" value="60">
                 </div>
 
@@ -285,12 +281,12 @@
             <!-- SECTION 6: WAKTU & ALARM -->
             <div id="sec-time" class="admin-section">
                 <div class="form-group">
-                    <label>Tampilan Jam</label>
+                    <label>Tampilan Jam Proyektor</label>
                     <div class="form-group-flex">
                         <select id="set-clock" style="flex:2">
                             <option value="digital">Digital Clock</option>
                             <option value="analog">Analog Clock</option>
-                            <option value="hidden">Sembunyikan</option>
+                            <option value="hidden">Sembunyikan Jam</option>
                         </select>
                         <input type="color" id="set-clock-color" value="#ffffff" style="flex:1">
                     </div>
@@ -337,22 +333,20 @@
                         <label>Smart Auto Night (Redup 18:00 - 05:59)</label>
                     </div>
                     
-                    <div class="checkbox-group" style="margin-bottom:10px;">
-                        <input type="checkbox" id="set-weather-sync">
-                        <label>Sinkronisasi Tema Cuaca Lokal (Hujan/Cerah)</label>
-                    </div>
-
-                    <div class="checkbox-group" style="border-color: #ff4757; background: rgba(255,71,87,0.1);">
-                        <input type="checkbox" id="set-cry-detect">
-                        <div style="display:flex; flex-direction:column;">
-                            <label style="color:#ff4757;">Cry Detection AI (Eksperimental)</label>
-                            <span style="font-size:0.7rem; color:#ccc;">Proyektor akan meredup jika deteksi tangisan.</span>
-                        </div>
+                    <label style="margin-top:10px;">Preset Langsung:</label>
+                    <div class="form-group-flex">
+                        <select id="set-preset" style="flex:2">
+                            <option value="custom">-- Pilih Preset --</option>
+                            <option value="newborn">👶 Newborn (White Noise)</option>
+                            <option value="deepsleep">💤 Deep Sleep (Gelap Gulita)</option>
+                            <option value="calm">🌊 Calm Mode (Suara Ombak)</option>
+                        </select>
+                        <button class="btn btn-primary" id="btn-apply-preset" style="flex:1;">Apply</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Sleep Timer (Layar Menggelap Otomatis)</label>
+                    <label>Sleep Timer (Mati Otomatis)</label>
                     <select id="set-sleep-timer">
                         <option value="0">Off (Menyala Terus)</option>
                         <option value="15">15 Menit</option>
@@ -369,14 +363,14 @@
 
         </div>
         
-        <button class="btn btn-danger" id="btn-stop-alarm">🔕 MATIKAN ALARM / ADZAN YANG BERBUNYI</button>
+        <button class="btn btn-danger" id="btn-stop-alarm-global">🔕 MATIKAN ALARM / ADZAN YANG BERBUNYI</button>
     </div>
 
+    <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Database Anda
         const firebaseConfig = {
           apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
           authDomain: "bbynight-d2bb0.firebaseapp.com",
@@ -402,24 +396,22 @@
         const defaultState = {
             theme: 'night-sky', customBgImg: '', clockType: 'digital', clockFont: "'Segoe UI', Tahoma, sans-serif", clockColor: '#ffffff',
             clockSize: 1, clockSeconds: true, showPrayer: true, brightness: 0, autoNightMode: false, sleepTimer: 0, 
-            weatherSync: false, cryDetect: false,
             particleCount: 60, animSpeed: 1, customBg1: '#020111', customBg2: '#20124d', customPColor: '#ffffff',
             masterVolume: 0.3, enWhiteNoise: false, volWhiteNoise: 0.5, enOcean: false, volOcean: 0.5, enHeartbeat: false, volHeartbeat: 0.8, enRain: false, volRain: 0.6,
             ytVideoId: '', ytPlayState: false,
             islamiPlayState: false, islamiSurah: '1', islamiPlaylistMode: 'playlist', islamiTrans: 'glow', islamiFont: "'Amiri', serif", islamiSize: 3, showAdzan: true,
             alarmTime: '', alarmActive: false, isAlarmRinging: false, lat: -6.2088, lng: 106.8456, 
-            babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff",
-            overlayText: '', overlayImg: '', performanceMode: false
+            babyName: '', babyFont: "'Segoe UI', sans-serif", babyColor: "#ffffff", overlayText: '', performanceMode: false
         };
 
         let state = { ...defaultState };
         let firebaseSyncTimeout = null;
         let tasbihCount = 0;
 
-        // Generate Option Juz 30 (Surah 78-114)
+        // Injeksi Juz 30 Option
         const juz30Html = [];
-        const juz30Names = ["An-Naba'","An-Nazi'at","'Abasa","At-Takwir","At-Tariq","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams","Al-Lail","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Al-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-Humazah","Al-'Asr","Al-Fil","Al-Humazah","Al-Fil","Quraish","Al-Ma'un","Al-Kauthar","Al-Kafirun","An-Nasr","Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"];
-        for(let i=78; i<=114; i++) { juz30Html.push(`<option value="${i}">${i}. ${juz30Names[i-78] || 'Surah '+i}</option>`); }
+        const juz30Names = ["An-Naba'","An-Nazi'at","'Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams","Al-Lail","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-Humazah","Al-'Asr","Al-Fil","Quraish","Al-Ma'un","Al-Kauthar","Al-Kafirun","An-Nasr","Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"];
+        for(let i=78; i<=114; i++) { juz30Html.push(`<option value="${i}">${i}. ${juz30Names[i-78]}</option>`); }
         document.getElementById('juz30-options').innerHTML = juz30Html.join('');
 
         const StorageCtrl = {
@@ -443,36 +435,35 @@
                         if (docSnap.exists()) {
                             Object.assign(state, docSnap.data()); 
                             AdminCtrl.syncUIToState();
-                            if(state.isAlarmRinging) document.getElementById('btn-stop-alarm').style.display = 'block';
-                            else document.getElementById('btn-stop-alarm').style.display = 'none';
+                            if(state.isAlarmRinging) document.getElementById('btn-stop-alarm-global').style.display = 'block';
+                            else document.getElementById('btn-stop-alarm-global').style.display = 'none';
                         }
                     });
                 }
             }
         };
 
+        const Presets = {
+            newborn: { theme: 'night-sky', brightness: 20, enWhiteNoise: true, enOcean: false, enHeartbeat: true, masterVolume: 0.4, particleCount: 80 },
+            deepsleep: { theme: 'blank', brightness: 80, enWhiteNoise: false, enOcean: false, enHeartbeat: false, masterVolume: 0.1, particleCount: 0 },
+            calm: { theme: 'ocean', brightness: 40, enWhiteNoise: false, enOcean: true, enHeartbeat: false, masterVolume: 0.3, particleCount: 0 }
+        };
+
         const DOM = {
-            btnDisplayStopAlarm: document.getElementById('btn-stop-alarm'),
-            uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'), uiBgImg: document.getElementById('set-bg-img'), uiGalleryEditor: document.getElementById('custom-gallery-editor'),
+            btnStopAlarmGlobal: document.getElementById('btn-stop-alarm-global'),
+            uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'), uiBgFile: document.getElementById('set-bg-file'), uiGalleryEditor: document.getElementById('custom-gallery-editor'),
             uiBrightness: document.getElementById('set-brightness'), uiParticle: document.getElementById('set-particle'), uiSpeed: document.getElementById('set-speed'), uiPerf: document.getElementById('set-performance'),
-            
             uiBabyName: document.getElementById('set-baby-name'), uiBabyFont: document.getElementById('set-baby-font'), uiBabyColor: document.getElementById('set-baby-color'),
-            uiOverlayTxt: document.getElementById('set-overlay-text'), uiOverlayImg: document.getElementById('set-overlay-img'),
-            
+            uiOverlayTxt: document.getElementById('set-overlay-text'),
             uiYtId: document.getElementById('set-yt-id'), btnLoadYt: document.getElementById('btn-load-yt'), btnPlayYt: document.getElementById('btn-yt-play'), btnPauseYt: document.getElementById('btn-yt-pause'),
             tglWN: document.getElementById('tgl-whitenoise'), volWN: document.getElementById('vol-whitenoise'), tglOc: document.getElementById('tgl-ocean'), volOc: document.getElementById('vol-ocean'), tglHb: document.getElementById('tgl-heartbeat'), volHb: document.getElementById('vol-heartbeat'), tglRain: document.getElementById('tgl-rain'), volRain: document.getElementById('vol-rain'), uiMasterVol: document.getElementById('set-master-volume'), btnStopAudio: document.getElementById('btn-stop-audio'),
-            
             uiIslamiSurah: document.getElementById('set-islami-surah'), btnIslamiPlay: document.getElementById('btn-islami-play'), btnIslamiStop: document.getElementById('btn-islami-stop'),
-            uiIslamiPlaylist: document.getElementById('set-islami-playlist'), uiIslamiTrans: document.getElementById('set-islami-trans'), uiIslamiFont: document.getElementById('set-islami-font'), uiIslamiSize: document.getElementById('set-islami-size'),
-            uiShowAdzan: document.getElementById('set-show-adzan'),
-            
+            uiIslamiPlaylist: document.getElementById('set-islami-playlist'), uiIslamiTrans: document.getElementById('set-islami-trans'), uiIslamiFont: document.getElementById('set-islami-font'), uiIslamiSize: document.getElementById('set-islami-size'), uiShowAdzan: document.getElementById('set-show-adzan'),
             uiClock: document.getElementById('set-clock'), uiClockColor: document.getElementById('set-clock-color'), uiClockFont: document.getElementById('set-clock-font'), uiPrayer: document.getElementById('set-prayer'), btnGeo: document.getElementById('btn-geo'),
             uiClockSize: document.getElementById('set-clock-size'), uiClockSeconds: document.getElementById('set-clock-seconds'),
             uiAlarmTime: document.getElementById('set-alarm-time'), uiAlarmActive: document.getElementById('set-alarm-active'),
-            
-            uiAutoNight: document.getElementById('set-auto-night'), uiSleepTimer: document.getElementById('set-sleep-timer'), uiWeatherSync: document.getElementById('set-weather-sync'), uiCryDetect: document.getElementById('set-cry-detect'),
+            uiAutoNight: document.getElementById('set-auto-night'), uiSleepTimer: document.getElementById('set-sleep-timer'), 
             btnSaveState: document.getElementById('btn-save-state'), btnResetState: document.getElementById('btn-reset-state'),
-            
             tasbihText: document.getElementById('tasbih-counter'), btnTasbih: document.getElementById('btn-tasbih'), btnTasbihReset: document.getElementById('btn-tasbih-reset')
         };
 
@@ -487,13 +478,36 @@
                     });
                 });
 
+                // Gambar Galeri HP -> Kompres -> Base64
+                DOM.uiBgFile.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if(!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 1280; // Scale down untuk Firebase
+                            const scaleSize = MAX_WIDTH / img.width;
+                            canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            state.customBgImg = canvas.toDataURL('image/jpeg', 0.6); // Kompres 60%
+                            state.theme = 'gallery';
+                            StorageCtrl.save(); AdminCtrl.syncUIToState();
+                        }
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+
                 DOM.uiTheme.addEventListener('change', e => { 
                     state.theme = e.target.value; 
                     DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none'; 
                     DOM.uiGalleryEditor.style.display = state.theme === 'gallery' ? 'block' : 'none';
                     StorageCtrl.save(); 
                 });
-                ['uiBg1','uiBg2','uiPColor','uiBgImg'].forEach(id => DOM[id].addEventListener('input', e => { state[id.replace('ui','custom').replace('-img','Img')] = e.target.value; StorageCtrl.save(); }));
+                ['uiBg1','uiBg2','uiPColor'].forEach(id => DOM[id].addEventListener('input', e => { state[id.replace('ui','custom')] = e.target.value; StorageCtrl.save(); }));
                 DOM.uiBrightness.addEventListener('input', e => { state.brightness = e.target.value; document.getElementById('val-brightness').innerText = `${e.target.value}% Dark`; StorageCtrl.save(); });
                 DOM.uiParticle.addEventListener('input', e => { state.particleCount = e.target.value; document.getElementById('val-particle').innerText = e.target.value; StorageCtrl.save(); });
                 DOM.uiSpeed.addEventListener('input', e => { state.animSpeed = e.target.value; document.getElementById('val-speed').innerText = e.target.value+'x'; StorageCtrl.save(); });
@@ -503,7 +517,6 @@
                 DOM.uiBabyFont.addEventListener('change', e => { state.babyFont = e.target.value; StorageCtrl.save(); });
                 DOM.uiBabyColor.addEventListener('input', e => { state.babyColor = e.target.value; StorageCtrl.save(); });
                 DOM.uiOverlayTxt.addEventListener('input', e => { state.overlayText = e.target.value; StorageCtrl.save(); });
-                DOM.uiOverlayImg.addEventListener('input', e => { state.overlayImg = e.target.value; StorageCtrl.save(); });
 
                 DOM.uiIslamiSurah.addEventListener('change', e => { state.islamiSurah = e.target.value; StorageCtrl.save();});
                 DOM.uiIslamiPlaylist.addEventListener('change', e => { state.islamiPlaylistMode = e.target.value; StorageCtrl.save();});
@@ -540,7 +553,7 @@
                 DOM.uiAlarmTime.addEventListener('input', e => { state.alarmTime = e.target.value; StorageCtrl.save(); });
                 DOM.uiAlarmActive.addEventListener('change', e => { state.alarmActive = e.target.checked; StorageCtrl.save(); });
                 
-                DOM.btnDisplayStopAlarm.addEventListener('click', () => {
+                DOM.btnStopAlarmGlobal.addEventListener('click', () => {
                     state.isAlarmRinging = false; state.alarmActive = false;
                     if(window.firebaseDb) window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), { isAlarmRinging: false, alarmActive: false });
                 });
@@ -552,27 +565,28 @@
                 });
                 
                 DOM.uiAutoNight.addEventListener('change', e => { state.autoNightMode = e.target.checked; StorageCtrl.save(); });
-                DOM.uiWeatherSync.addEventListener('change', e => { state.weatherSync = e.target.checked; StorageCtrl.save(); });
-                DOM.uiCryDetect.addEventListener('change', e => { state.cryDetect = e.target.checked; StorageCtrl.save(); });
                 DOM.uiSleepTimer.addEventListener('change', e => { state.sleepTimer = parseInt(e.target.value); StorageCtrl.save(); });
                 
                 DOM.btnSaveState.addEventListener('click', () => StorageCtrl.save(false));
                 DOM.btnResetState.addEventListener('click', () => { if(confirm("Reset Default?")){ Object.assign(state, defaultState); StorageCtrl.save(false); }});
             },
             syncUIToState: () => {
-                DOM.uiTheme.value = state.theme; DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none'; DOM.uiGalleryEditor.style.display = state.theme === 'gallery' ? 'block' : 'none';
-                DOM.uiBg1.value = state.customBg1; DOM.uiBg2.value = state.customBg2; DOM.uiPColor.value = state.customPColor; DOM.uiBgImg.value = state.customBgImg;
+                DOM.uiTheme.value = state.theme; 
+                DOM.uiCustomEditor.style.display = state.theme === 'custom' ? 'block' : 'none'; 
+                DOM.uiGalleryEditor.style.display = state.theme === 'gallery' ? 'block' : 'none';
+                
+                DOM.uiBg1.value = state.customBg1; DOM.uiBg2.value = state.customBg2; DOM.uiPColor.value = state.customPColor; 
                 DOM.uiBrightness.value = state.brightness; document.getElementById('val-brightness').innerText = `${state.brightness}% Dark`;
                 DOM.uiParticle.value = state.particleCount; document.getElementById('val-particle').innerText = state.particleCount;
                 DOM.uiSpeed.value = state.animSpeed; document.getElementById('val-speed').innerText = state.animSpeed+'x';
                 DOM.uiPerf.checked = state.performanceMode; 
                 
-                DOM.uiBabyName.value = state.babyName; DOM.uiBabyFont.value = state.babyFont; DOM.uiBabyColor.value = state.babyColor;
-                DOM.uiOverlayTxt.value = state.overlayText || ''; DOM.uiOverlayImg.value = state.overlayImg || '';
+                DOM.uiBabyName.value = state.babyName || ''; DOM.uiBabyFont.value = state.babyFont; DOM.uiBabyColor.value = state.babyColor;
+                DOM.uiOverlayTxt.value = state.overlayText || '';
                 
                 DOM.uiIslamiSurah.value = state.islamiSurah; DOM.uiShowAdzan.checked = state.showAdzan; DOM.uiIslamiPlaylist.value = state.islamiPlaylistMode; DOM.uiIslamiTrans.value = state.islamiTrans; DOM.uiIslamiFont.value = state.islamiFont; DOM.uiIslamiSize.value = state.islamiSize;
                 
-                DOM.uiYtId.value = state.ytVideoId;
+                DOM.uiYtId.value = state.ytVideoId || '';
                 DOM.tglWN.checked = state.enWhiteNoise; DOM.volWN.value = state.volWhiteNoise * 100;
                 DOM.tglOc.checked = state.enOcean; DOM.volOc.value = state.volOcean * 100;
                 DOM.tglHb.checked = state.enHeartbeat; DOM.volHb.value = state.volHeartbeat * 100;
@@ -582,9 +596,9 @@
                 DOM.uiClock.value = state.clockType; DOM.uiClockColor.value = state.clockColor; DOM.uiClockFont.value = state.clockFont; 
                 DOM.uiClockSize.value = state.clockSize; document.getElementById('val-clock-size').innerText = state.clockSize+'x';
                 DOM.uiClockSeconds.checked = state.clockSeconds; DOM.uiPrayer.checked = state.showPrayer;
-                DOM.uiAlarmTime.value = state.alarmTime; DOM.uiAlarmActive.checked = state.alarmActive;
+                DOM.uiAlarmTime.value = state.alarmTime || ''; DOM.uiAlarmActive.checked = state.alarmActive;
                 
-                DOM.uiAutoNight.checked = state.autoNightMode; DOM.uiSleepTimer.value = state.sleepTimer; DOM.uiWeatherSync.checked = state.weatherSync; DOM.uiCryDetect.checked = state.cryDetect;
+                DOM.uiAutoNight.checked = state.autoNightMode; DOM.uiSleepTimer.value = state.sleepTimer; 
             }
         };
 
