@@ -70,7 +70,7 @@
             <button class="tab-btn" data-target="sec-tasbih">🤲 Tasbih</button>
             <button class="tab-btn" data-target="sec-audio">🎵 Audio</button>
             <button class="tab-btn" data-target="sec-time">🕰️ Waktu</button>
-            <button class="tab-btn" data-target="sec-sys">🧠 Smart</button>
+            <button class="tab-btn" data-target="sec-sys">⚙️ Sistem</button>
         </div>
 
         <div class="admin-content">
@@ -101,7 +101,7 @@
                     <div class="form-group" style="background: rgba(79, 172, 254, 0.1); border-color: #4facfe;">
                         <label style="color:#4facfe;">Upload Wallpaper dari Galeri</label>
                         <input type="file" id="set-bg-file" accept="image/*">
-                        <p style="font-size:0.75rem; color:#aaa; margin-top:5px;">Foto akan dikompres otomatis agar sinkron cepat.</p>
+                        <p style="font-size:0.75rem; color:#aaa; margin-top:5px;">Foto otomatis di-kompres agar sinkron realtime ke proyektor tidak lag/berat.</p>
                     </div>
                 </div>
 
@@ -124,6 +124,10 @@
                 <div class="form-group">
                     <label>Kecepatan Animasi <span class="slider-val" id="val-speed">1x</span></label>
                     <input type="range" id="set-speed" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="set-performance">
+                    <label for="set-performance">Mode Hemat CPU (Matikan Blur Animasi)</label>
                 </div>
             </div>
 
@@ -225,8 +229,8 @@
                 <div class="form-group checkbox-group" style="border: 1px solid rgba(248,181,0,0.5); background: rgba(248,181,0,0.1);">
                     <input type="checkbox" id="set-show-adzan" checked>
                     <div style="display:flex; flex-direction:column;">
-                        <label for="set-show-adzan" style="color:#f8b500; font-size:1rem;">Suara Adzan & Iqamah Otomatis</label>
-                        <span style="font-size:0.75rem; color:#ccc;">Layar Glow Emas & LED Iqamah layaknya di Masjid.</span>
+                        <label for="set-show-adzan" style="color:#f8b500; font-size:1rem;">Adzan & Iqamah Otomatis</label>
+                        <span style="font-size:0.75rem; color:#ccc;">Layar Glow Emas & LED Countdown Iqamah.</span>
                     </div>
                 </div>
             </div>
@@ -238,18 +242,19 @@
                     <div id="tasbih-counter">0</div>
                     <button id="btn-tasbih">TAP</button>
                     <button class="btn btn-warning" id="btn-tasbih-reset" style="margin-top: 30px; width: 100px;">Reset</button>
-                    <p style="font-size:0.8rem; color:#777; margin-top:15px;">*HP akan bergetar setiap tap</p>
+                    <p style="font-size:0.8rem; color:#777; margin-top:15px;">*HP akan bergetar setiap tap untuk penanda</p>
                 </div>
             </div>
 
             <!-- SECTION 5: AUDIO Latar & YOUTUBE -->
             <div id="sec-audio" class="admin-section">
                 <div class="form-group">
-                    <label>YouTube Background Audio</label>
+                    <label>YouTube Background Audio/Video</label>
                     <div style="display:flex; gap:10px;">
                         <input type="text" id="set-yt-id" placeholder="ID Video (Misal: dQw4w9WgXcQ)">
                         <button class="btn btn-primary" id="btn-load-yt" style="width:auto;">Save</button>
                     </div>
+                    <p style="font-size: 0.75rem; color:#aaa; margin-top:5px;">Video akan muncul penuh sebagai background jika di-play.</p>
                     <div class="btn-group" style="margin-top:10px;">
                         <button class="btn btn-success" id="btn-yt-play">▶ Play YT</button>
                         <button class="btn btn-warning" id="btn-yt-pause">⏸ Pause YT</button>
@@ -323,25 +328,13 @@
                 </div>
             </div>
 
-            <!-- SECTION 7: SMART SYSTEM -->
+            <!-- SECTION 7: SYSTEM -->
             <div id="sec-sys" class="admin-section">
                 <div class="form-group">
-                    <label>🧠 Otomatisasi Pintar</label>
-                    
+                    <label>Otomatisasi Cerdas</label>
                     <div class="checkbox-group" style="margin-bottom:10px;">
                         <input type="checkbox" id="set-auto-night">
-                        <label>Smart Auto Night (Redup 18:00 - 05:59)</label>
-                    </div>
-                    
-                    <label style="margin-top:10px;">Preset Langsung:</label>
-                    <div class="form-group-flex">
-                        <select id="set-preset" style="flex:2">
-                            <option value="custom">-- Pilih Preset --</option>
-                            <option value="newborn">👶 Newborn (White Noise)</option>
-                            <option value="deepsleep">💤 Deep Sleep (Gelap Gulita)</option>
-                            <option value="calm">🌊 Calm Mode (Suara Ombak)</option>
-                        </select>
-                        <button class="btn btn-primary" id="btn-apply-preset" style="flex:1;">Apply</button>
+                        <label>Smart Auto Night (Layar Redup Otomatis 18:00 - 05:59)</label>
                     </div>
                 </div>
 
@@ -371,6 +364,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Konfigurasi Database Anda
         const firebaseConfig = {
           apiKey: "AIzaSyCrChkiS6ynn5qZ-jLHHJ9Tg2pz1kjaHS8",
           authDomain: "bbynight-d2bb0.firebaseapp.com",
@@ -408,7 +402,7 @@
         let firebaseSyncTimeout = null;
         let tasbihCount = 0;
 
-        // Injeksi Juz 30 Option
+        // Injeksi Juz 30 Options secara otomatis
         const juz30Html = [];
         const juz30Names = ["An-Naba'","An-Nazi'at","'Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams","Al-Lail","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-Humazah","Al-'Asr","Al-Fil","Quraish","Al-Ma'un","Al-Kauthar","Al-Kafirun","An-Nasr","Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"];
         for(let i=78; i<=114; i++) { juz30Html.push(`<option value="${i}">${i}. ${juz30Names[i-78]}</option>`); }
@@ -443,12 +437,6 @@
             }
         };
 
-        const Presets = {
-            newborn: { theme: 'night-sky', brightness: 20, enWhiteNoise: true, enOcean: false, enHeartbeat: true, masterVolume: 0.4, particleCount: 80 },
-            deepsleep: { theme: 'blank', brightness: 80, enWhiteNoise: false, enOcean: false, enHeartbeat: false, masterVolume: 0.1, particleCount: 0 },
-            calm: { theme: 'ocean', brightness: 40, enWhiteNoise: false, enOcean: true, enHeartbeat: false, masterVolume: 0.3, particleCount: 0 }
-        };
-
         const DOM = {
             btnStopAlarmGlobal: document.getElementById('btn-stop-alarm-global'),
             uiTheme: document.getElementById('set-theme'), uiCustomEditor: document.getElementById('custom-theme-editor'), uiBg1: document.getElementById('set-bg1'), uiBg2: document.getElementById('set-bg2'), uiPColor: document.getElementById('set-pcolor'), uiBgFile: document.getElementById('set-bg-file'), uiGalleryEditor: document.getElementById('custom-gallery-editor'),
@@ -478,7 +466,7 @@
                     });
                 });
 
-                // Gambar Galeri HP -> Kompres -> Base64
+                // Sistem Kompresi Foto Galeri (Bypass batas limit string Firebase)
                 DOM.uiBgFile.addEventListener('change', (e) => {
                     const file = e.target.files[0];
                     if(!file) return;
@@ -487,12 +475,15 @@
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 1280; // Scale down untuk Firebase
-                            const scaleSize = MAX_WIDTH / img.width;
-                            canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                            let MAX_WIDTH = 1280;
+                            let scaleSize = MAX_WIDTH / img.width;
+                            if(scaleSize > 1) scaleSize = 1; // Jangan perbesar jika foto kecil
+                            canvas.width = img.width * scaleSize;
+                            canvas.height = img.height * scaleSize;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            state.customBgImg = canvas.toDataURL('image/jpeg', 0.6); // Kompres 60%
+                            // Mengubah menjadi Base64 string dengan kualitas 50%
+                            state.customBgImg = canvas.toDataURL('image/jpeg', 0.5);
                             state.theme = 'gallery';
                             StorageCtrl.save(); AdminCtrl.syncUIToState();
                         }
@@ -523,7 +514,7 @@
                 DOM.uiIslamiTrans.addEventListener('change', e => { state.islamiTrans = e.target.value; StorageCtrl.save();});
                 DOM.uiIslamiFont.addEventListener('change', e => { state.islamiFont = e.target.value; StorageCtrl.save();});
                 DOM.uiIslamiSize.addEventListener('change', e => { state.islamiSize = e.target.value; StorageCtrl.save();});
-                DOM.btnIslamiPlay.addEventListener('click', () => { state.islamiPlayState = true; StorageCtrl.save(); });
+                DOM.btnIslamiPlay.addEventListener('click', () => { state.islamiPlayState = true; state.ytPlayState = false; StorageCtrl.save(); });
                 DOM.btnIslamiStop.addEventListener('click', () => { state.islamiPlayState = false; StorageCtrl.save(); });
                 DOM.uiShowAdzan.addEventListener('change', e => { state.showAdzan = e.target.checked; StorageCtrl.save(); });
 
@@ -531,7 +522,7 @@
                 DOM.btnTasbihReset.addEventListener('click', () => { tasbihCount = 0; DOM.tasbihText.innerText = 0; if(navigator.vibrate) navigator.vibrate([50, 50, 50]); });
 
                 DOM.btnLoadYt.addEventListener('click', () => { state.ytVideoId = DOM.uiYtId.value.trim(); StorageCtrl.save(); });
-                DOM.btnPlayYt.addEventListener('click', () => { state.ytPlayState = true; StorageCtrl.save(); });
+                DOM.btnPlayYt.addEventListener('click', () => { state.ytPlayState = true; state.islamiPlayState = false; StorageCtrl.save(); });
                 DOM.btnPauseYt.addEventListener('click', () => { state.ytPlayState = false; StorageCtrl.save(); });
                 DOM.tglWN.addEventListener('change', e => { state.enWhiteNoise = e.target.checked; StorageCtrl.save(); });
                 DOM.tglOc.addEventListener('change', e => { state.enOcean = e.target.checked; StorageCtrl.save(); });
