@@ -90,9 +90,7 @@
         #display-stop-alarm { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; padding: 20px 40px; font-size: 2rem; font-weight: bold; background: #ff4757; color: white; border: none; border-radius: 20px; cursor: pointer; display: none; animation: pulseBtn 1s infinite; }
         @keyframes pulseBtn { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
 
-        /* ========================================================
-           3. THEMES CSS (> 10 TEMA)
-           ======================================================== */
+        /* Tema CSS */
         .theme-night-sky { background: linear-gradient(to bottom, #020111 0%, #20124d 100%); }
         .theme-ocean { background: linear-gradient(to bottom, #001f3f 0%, #001122 100%); }
         .theme-forest { background: linear-gradient(to bottom, #001a00 0%, #000d00 100%); }
@@ -246,7 +244,7 @@
                 DOM.layerTheme.innerHTML = ''; DOM.layerTheme.className = '';
                 if(state.performanceMode) document.body.classList.add('performance-mode'); else document.body.classList.remove('performance-mode');
 
-                if (state.theme === 'gallery' && state.customBgImg && state.customBgImg.trim() !== '') {
+                if (state.theme === 'gallery' && state.customBgImg && String(state.customBgImg).trim() !== '') {
                     DOM.layerTheme.style.background = `url(${state.customBgImg})`; DOM.layerTheme.style.backgroundSize = 'cover'; DOM.layerTheme.style.backgroundPosition = 'center';
                 } else if (state.theme === 'custom') {
                     DOM.layerTheme.style.background = `linear-gradient(to bottom, ${state.customBg1} 0%, ${state.customBg2} 100%)`;
@@ -285,14 +283,14 @@
                     DOM.layerTheme.appendChild(wave1); DOM.layerTheme.appendChild(wave2);
                 }
 
-                // Render Elemen Teks & Media (Dengan Perlindungan Undefined/Crash)
+                // Render Elemen Teks & Media (Dengan Fallback Undefined Fix)
                 const safeName = state.babyName ? String(state.babyName) : '';
                 if(safeName.trim() !== '') { 
                     DOM.layerBabyName.style.display = 'block'; 
                     DOM.layerBabyName.innerText = safeName; 
                     DOM.layerBabyName.style.fontFamily = state.babyFont || "'Segoe UI', sans-serif"; 
                     DOM.layerBabyName.style.color = state.babyColor || "#ffffff";
-                } else DOM.layerBabyName.style.display = 'none';
+                } else { DOM.layerBabyName.style.display = 'none'; }
 
                 const safeImg = state.overlayImg ? String(state.overlayImg) : '';
                 if(safeImg.trim() !== '') { DOM.layerOverlayImg.style.display = 'block'; DOM.layerOverlayImg.src = safeImg; } 
@@ -303,7 +301,8 @@
                 if(safeText.trim() !== '') { 
                     DOM.layerMarquee.style.display = 'block'; 
                     DOM.layerOverlayTxt.innerText = safeText; 
-                    const durationMs = Math.max(10, safeText.length * 0.3); 
+                    // Mengatur kecepatan beradasarkan panjang teks agar selalu pas
+                    const durationMs = Math.max(10, safeText.length * 0.2); 
                     DOM.layerOverlayTxt.style.animationDuration = `${durationMs}s`;
                 } else { DOM.layerMarquee.style.display = 'none'; }
 
@@ -469,7 +468,7 @@
                 DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Murattal & Ayat...</div>';
                 
                 try {
-                    // PERBAIKAN BUG AYAT KURSI (Surah 255 tidak ada, diganti menjadi fetch spesifik 1 ayat)
+                    // Penanganan Khusus Ayat Kursi
                     let apiUrl = `https://api.alquran.cloud/v1/surah/${state.islamiSurah}/ar.alafasy`;
                     let isSingleAyah = false;
                     if(String(state.islamiSurah) === '255') {
@@ -531,51 +530,6 @@
                 }, 800);
             },
             stop: () => { IslamicCtrl.isPlaying = false; DOM.murattalAudio.pause(); DOM.layerQuran.innerHTML = ''; DOM.layerQuran.className = ''; IslamicCtrl.currentSurahRendered = ''; }
-        };
-
-        const QuranTextCtrl = {
-            ayahs: [], currentIdx: 0, timer: null, currentSurahRendered: '',
-            fetchAndRender: async () => {
-                QuranTextCtrl.stop();
-                if (!state.showQuran || state.islamiPlayState) return; 
-                
-                DOM.layerQuran.style.opacity = 1; DOM.layerQuran.innerHTML = '<div style="font-size:1rem;">Memuat Teks Ayat...</div>';
-                try {
-                    // PERBAIKAN BUG AYAT KURSI (Teks Biasa)
-                    let apiUrl = `https://api.alquran.cloud/v1/surah/${state.quranSurah}`;
-                    let isSingleAyah = false;
-                    if(String(state.quranSurah) === '255') {
-                        apiUrl = `https://api.alquran.cloud/v1/ayah/2:255`;
-                        isSingleAyah = true;
-                    }
-
-                    const res = await fetch(apiUrl);
-                    const data = await res.json();
-                    
-                    if(data.code === 200) {
-                        QuranTextCtrl.ayahs = isSingleAyah ? [data.data] : data.data.ayahs; 
-                        QuranTextCtrl.currentIdx = 0; QuranTextCtrl.currentSurahRendered = state.quranSurah;
-                        QuranTextCtrl.loopAyah();
-                    } else {
-                        DOM.layerQuran.innerHTML = '<div style="color:red;">Error: Surah tidak ditemukan.</div>';
-                    }
-                } catch (e) { DOM.layerQuran.innerHTML = '<div style="color:red;">Gagal memuat teks.</div>'; }
-            },
-            loopAyah: () => {
-                if(!state.showQuran || state.islamiPlayState || QuranTextCtrl.ayahs.length === 0) return;
-                if(QuranTextCtrl.currentIdx >= QuranTextCtrl.ayahs.length) QuranTextCtrl.currentIdx = 0; 
-                
-                const ayahObj = QuranTextCtrl.ayahs[QuranTextCtrl.currentIdx];
-                DOM.layerQuran.style.opacity = 0; 
-                setTimeout(() => {
-                    DOM.layerQuran.innerHTML = `<div class="quran-ayah-text" style="font-family:${state.quranFont}; font-size:${state.quranSize}rem;">${ayahObj.text}</div><div class="quran-translation">Ayat ${ayahObj.numberInSurah}</div>`;
-                    DOM.layerQuran.style.opacity = 1; 
-                    const durationMs = (ayahObj.text.length * state.quranSpeed) + 1500; 
-                    QuranTextCtrl.currentIdx++;
-                    QuranTextCtrl.timer = setTimeout(QuranTextCtrl.loopAyah, durationMs);
-                }, 800);
-            },
-            stop: () => { clearTimeout(QuranTextCtrl.timer); if(!state.islamiPlayState){ DOM.layerQuran.innerHTML = ''; DOM.layerQuran.style.opacity = 0; } QuranTextCtrl.currentSurahRendered = ''; }
         };
 
         // ==========================================
@@ -659,9 +613,11 @@
                 DOM.startOverlay.style.display = 'none';
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
                 
-                // MENGAKALI AUTOPLAY BROWSER: Putar lalu pause semua tag audio untuk membuka kuncinya
-                DOM.murattalAudio.play().then(() => DOM.murattalAudio.pause()).catch(e => {});
-                DOM.adzanAudio.play().then(() => DOM.adzanAudio.pause()).catch(e => {});
+                // MENGAKALI AUTOPLAY BROWSER: Putar lalu pause semua tag audio agar terbuka
+                DOM.murattalAudio.muted = true;
+                DOM.murattalAudio.play().then(() => { DOM.murattalAudio.pause(); DOM.murattalAudio.muted = false; }).catch(e => {});
+                DOM.adzanAudio.muted = true;
+                DOM.adzanAudio.play().then(() => { DOM.adzanAudio.pause(); DOM.adzanAudio.muted = false; }).catch(e => {});
 
                 if (window.firebaseDb) {
                     window.firebaseOnSnapshot(window.firebaseDoc(window.firebaseDb, "baby_night_settings", "global_state"), (docSnap) => {
@@ -670,8 +626,7 @@
                             ThemeCtrl.render(); TimeCtrl.update(); AudioCtrl.updateVolumes();
                             
                             // Eksekusi Logika Quran Berdasarkan State Admin
-                            if(state.islamiPlayState) { QuranTextCtrl.stop(); IslamicCtrl.fetchAndPlay(); }
-                            else { IslamicCtrl.stop(); if(state.showQuran && QuranTextCtrl.currentSurahRendered !== state.quranSurah) QuranTextCtrl.fetchAndRender(); else if (!state.showQuran) QuranTextCtrl.stop(); }
+                            if(state.islamiPlayState) { IslamicCtrl.fetchAndPlay(); } else { IslamicCtrl.stop(); }
                             
                             // Eksekusi Logika Youtube
                             if(ytPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
